@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_scada/models/alarm_model.dart';
+import 'package:flutter_scada/models/page_model.dart';
+import 'package:flutter_scada/models/user_model.dart';
+import 'package:flutter_scada/screens/pages_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../providers/providers.dart';
 import '../models/widget_model.dart';
@@ -648,8 +652,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
               final dy = details.localPosition.dy - _dragData!.offsetY;
               final snap = ref.read(snapToGridProvider) && ref.read(gridEnabledProvider);
               final grid = ref.read(gridSizeProvider);
-              var nx = math.max(0, widget.x + dx);
-              var ny = math.max(0, widget.y + dy);
+              var nx = math.max(0.0, widget.x + dx);
+              var ny = math.max(0.0, widget.y + dy);
               if (snap) { nx = _snapToGrid(nx, grid, true); ny = _snapToGrid(ny, grid, true); }
 
               // Smart Guides

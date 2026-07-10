@@ -5,7 +5,8 @@ import '../models/page_model.dart';
 import '../models/alarm_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:3000/api';
+ //static const String baseUrl = 'http://localhost:3000/api';
+ static const String baseUrl = 'https://scada-backend-br1t.onrender.com/api';
   // For emulator use 10.0.2.2, for web use localhost
 
   final Dio _dio = Dio(BaseOptions(
