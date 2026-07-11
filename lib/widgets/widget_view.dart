@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/widget_model.dart';
 import '../models/enums.dart';
+import '../providers/providers.dart';
 import 'painters.dart';
 
-class ScadaWidgetView extends StatefulWidget {
+class ScadaWidgetView extends ConsumerStatefulWidget {
   final ScadaWidget widget;
   final bool designMode;
   final bool selected;
@@ -29,13 +31,12 @@ class ScadaWidgetView extends StatefulWidget {
   });
 
   @override
-  State<ScadaWidgetView> createState() => _ScadaWidgetViewState();
+  ConsumerState<ScadaWidgetView> createState() => _ScadaWidgetViewState();
 }
 
-class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderStateMixin {
+class _ScadaWidgetViewState extends ConsumerState<ScadaWidgetView> with TickerProviderStateMixin {
   double _fanRotation = 0;
   double _flowPhase = 0;
-  List<double> _history = [];
   late AnimationController _controller;
   late AnimationController _blinkController;
   late AnimationController _flowController;
@@ -78,20 +79,12 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
       _controller.repeat();
     }
 
-    _updateBlinkState();
+    _updateBlinkState(widget.widget);
 
-    if (widget.widget.type == WidgetType.graph ||
-        widget.widget.type == WidgetType.chart ||
-        widget.widget.type == WidgetType.trendChart ||
-        widget.widget.type == WidgetType.spcChart) {
-      final pts = widget.widget.type == WidgetType.trendChart || widget.widget.type == WidgetType.spcChart
-          ? widget.widget.trendPoints : 20;
-      _history = List.generate(pts, (_) => widget.widget.minValue + math.Random().nextDouble() * (widget.widget.maxValue - widget.widget.minValue));
-    }
+
   }
 
-  void _updateBlinkState() {
-    final w = widget.widget;
+  void _updateBlinkState(ScadaWidget w) {
     bool shouldBlink = false;
 
     // چک کردن آلارم برای چشمک زدن
@@ -124,32 +117,28 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
     super.didUpdateWidget(oldWidget);
     
     // Update blink state
-    _updateBlinkState();
+    _updateBlinkState(widget.widget);
     
     // Update blink speed if changed
     if (oldWidget.widget.alarm.blinkSpeed != widget.widget.alarm.blinkSpeed) {
       _blinkController.duration = Duration(milliseconds: widget.widget.alarm.blinkSpeed.toInt());
     }
     
-    if (widget.widget.type == WidgetType.graph || widget.widget.type == WidgetType.chart) {
-      final pct = _clamp((widget.widget.scaledValue - widget.widget.minValue) /
-          (widget.widget.maxValue - widget.widget.minValue));
-      _history.add(pct + (math.Random().nextDouble() - 0.5) * 0.1);
-      if (_history.length > 20) _history.removeAt(0);
-    }
-    if (widget.widget.type == WidgetType.trendChart || widget.widget.type == WidgetType.spcChart) {
-      _history.add(widget.widget.scaledValue);
-      final maxPts = widget.widget.trendPoints;
-      if (_history.length > maxPts) _history.removeAt(0);
-    }
+
   }
 
   @override
   Widget build(BuildContext context) {
+    final liveWidget = ref.watch(widgetRuntimeByIdProvider(widget.widget.id)) ?? widget.widget;
+    final history = ref.watch(widgetHistoryByIdProvider(widget.widget.id));
+
+    // update blink based on live data without rebuilding parent page
+    _updateBlinkState(liveWidget);
+
     return RepaintBoundary(
       child: Container(
-        width: widget.widget.width,
-        height: widget.widget.height,
+        width: liveWidget.width,
+        height: liveWidget.height,
         decoration: widget.selected
             ? BoxDecoration(border: Border.all(color: Colors.blue, width: 2))
             : (widget.designMode
@@ -165,11 +154,10 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
           children: [
             Positioned.fill(
               child: CustomPaint(
-                painter: _getPainter(),
-                size: Size(widget.widget.width, widget.widget.height),
+                painter: _getPainter(liveWidget, history),
+                size: Size(liveWidget.width, liveWidget.height),
               ),
             ),
-            // Connection status dot
             Positioned(
               top: 2,
               right: 2,
@@ -178,11 +166,10 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _connectionColor(),
+                  color: _connectionColor(liveWidget),
                 ),
               ),
             ),
-            // Resize handles
             if (widget.designMode && widget.selected) ..._buildResizeHandles(),
           ],
         ),
@@ -190,8 +177,8 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
     );
   }
 
-  Color _connectionColor() {
-    switch (widget.widget.connectionStatus) {
+  Color _connectionColor(ScadaWidget w) {
+    switch (w.connectionStatus) {
       case ConnectionStatus.connected:
         return Colors.green;
       case ConnectionStatus.disconnected:
@@ -201,8 +188,7 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
     }
   }
 
-  CustomPainter _getPainter() {
-    final w = widget.widget;
+  CustomPainter _getPainter(ScadaWidget w, List<double> history) {
     switch (w.type) {
       case WidgetType.gauge:
         return GaugePainter(w, blinkOpacity: w.isInAlarm && w.alarm.blinkOnAlarm ? _blinkOpacity : 1.0);
@@ -243,9 +229,9 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
       case WidgetType.statusIndicator:
         return StatusIndicatorPainter(w);
       case WidgetType.graph:
-        return GraphPainter(w, _history);
+        return GraphPainter(w, history);
       case WidgetType.chart:
-        return ChartPainter(w, _history);
+        return ChartPainter(w, history);
       case WidgetType.level:
         return VerticalBarPainter(w);
       case WidgetType.staticLabel:
@@ -268,9 +254,9 @@ class _ScadaWidgetViewState extends State<ScadaWidgetView> with TickerProviderSt
         final calcBlink = w.calcIsDigital && w.calcBlinkOnTrue && w.value != 0;
         return CalculatedPainter(w, blinkOpacity: calcBlink ? _blinkOpacity : 1.0);
       case WidgetType.trendChart:
-        return TrendChartPainter(w, _history);
+        return TrendChartPainter(w, history);
       case WidgetType.spcChart:
-        return SpcChartPainter(w, _history);
+        return SpcChartPainter(w, history);
       case WidgetType.animatedPath:
         return AnimatedPathPainter(w, _flowPhase);
       case WidgetType.dataTable:

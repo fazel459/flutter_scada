@@ -45,6 +45,25 @@ class DataSimulationService {
       WidgetType.motor,
       WidgetType.relay,
     ];
+    final derivedTypes = <WidgetType>[
+      WidgetType.calculated,
+      WidgetType.trendChart,
+      WidgetType.spcChart,
+      WidgetType.dataTable,
+      WidgetType.animatedPath,
+      WidgetType.staticLabel,
+      WidgetType.staticImage,
+      WidgetType.staticShape,
+      WidgetType.staticPipe,
+      WidgetType.staticPanel,
+      WidgetType.staticIcon,
+      WidgetType.staticLine,
+      WidgetType.staticArrow,
+    ];
+
+    if (derivedTypes.contains(w.type)) {
+      return;
+    }
 
     if (boolTypes.contains(w.type)) {
       _bools[w.id] = math.Random().nextDouble() > 0.3;

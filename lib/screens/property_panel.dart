@@ -41,7 +41,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFF334155)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8),
         ],
       ),
       child: Column(
@@ -151,7 +151,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             filled: true,
-            fillColor: Colors.black.withOpacity(0.3),
+            fillColor: Colors.black.withValues(alpha: 0.3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(4),
               borderSide: const BorderSide(color: Color(0xFF475569)),
@@ -287,7 +287,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       ],
       if (w.type == WidgetType.staticShape) ...[
         _field('Shape', DropdownButtonFormField<String>(
-          value: w.staticShapeType,
+          initialValue: w.staticShapeType,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -306,7 +306,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       ],
       if (w.type == WidgetType.staticPipe) ...[
         _field('Direction', DropdownButtonFormField<String>(
-          value: w.staticPipeDirection,
+          initialValue: w.staticPipeDirection,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -331,7 +331,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       ],
       if (w.type == WidgetType.staticIcon) ...[
         _field('Icon', DropdownButtonFormField<String>(
-          value: w.staticIconName,
+          initialValue: w.staticIconName,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -358,7 +358,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       ],
       if (w.type == WidgetType.staticArrow) ...[
         _field('Direction', DropdownButtonFormField<String>(
-          value: w.staticArrowDir,
+          initialValue: w.staticArrowDir,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -399,8 +399,8 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                 style: const TextStyle(color: Color(0xFF64748B), fontSize: 9)),
             const SizedBox(height: 4),
             const SizedBox(height: 4),
-            Text('Tip: tap a bound cell again to change tag. Merge settings are edited per cell in the web preview.',
-                style: const TextStyle(color: Color(0xFF475569), fontSize: 8)),
+            const Text('Tip: tap a bound cell again to change tag. Merge settings are edited per cell in the web preview.',
+                style: TextStyle(color: Color(0xFF475569), fontSize: 8)),
             const SizedBox(height: 4),
             SizedBox(
               height: (w.tableRows * 28.0).clamp(56, 200),
@@ -425,13 +425,13 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                     onTap: () => _showCellTagSelector(w, r, c),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: bound ? Colors.blue.withOpacity(0.15) : Colors.black.withOpacity(0.2),
+                        color: bound ? Colors.blue.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(3),
-                        border: Border.all(color: bound ? Colors.blue.withOpacity(0.4) : const Color(0xFF475569), width: 0.5),
+                        border: Border.all(color: bound ? Colors.blue.withValues(alpha: 0.4) : const Color(0xFF475569), width: 0.5),
                       ),
                       child: Center(
                         child: Text(
-                          bound ? (cell!['tagName']?.toString() ?? '🏷️') : '[$r,$c]',
+                          bound ? (cell['tagName']?.toString() ?? '🏷️') : '[$r,$c]',
                           style: TextStyle(color: bound ? Colors.blue : const Color(0xFF64748B), fontSize: 7),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -448,7 +448,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       // ====== فیلدهای Animated Path ======
       if (w.type == WidgetType.animatedPath) ...[
         _field('Direction', DropdownButtonFormField<String>(
-          value: w.pathDirection,
+          initialValue: w.pathDirection,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -501,9 +501,9 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                   isDense: true,
                   contentPadding: const EdgeInsets.all(6),
                   filled: true,
-                  fillColor: Colors.black.withOpacity(0.3),
+                  fillColor: Colors.black.withValues(alpha: 0.3),
                   hintText: '({TT-101} + {TT-102}) / 2',
-                  hintStyle: TextStyle(color: Colors.purple.withOpacity(0.3), fontSize: 10),
+                  hintStyle: TextStyle(color: Colors.purple.withValues(alpha: 0.3), fontSize: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: const BorderSide(color: Color(0xFF475569)),
@@ -518,7 +518,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                 decoration: BoxDecoration(
-                  color: validation.valid ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                  color: validation.valid ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(

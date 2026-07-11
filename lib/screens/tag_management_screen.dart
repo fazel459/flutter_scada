@@ -107,7 +107,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
       onTap: () { setState(() => _selectedGroup = key); _loadData(); },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        color: selected ? Colors.blue.withOpacity(0.15) : Colors.transparent,
+        color: selected ? Colors.blue.withValues(alpha: 0.15) : Colors.transparent,
         child: Row(
           children: [
             Icon(key.isEmpty ? Icons.label : Icons.folder, size: 14, color: selected ? Colors.blue : const Color(0xFF64748B)),

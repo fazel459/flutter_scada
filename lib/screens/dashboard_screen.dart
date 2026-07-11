@@ -1,6 +1,9 @@
+// ignore_for_file: deprecated_member_use, unused_field
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
+// ignore: unused_import
 import '../services/api_service.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {

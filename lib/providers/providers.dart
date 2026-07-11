@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, library_private_types_in_public_api
+
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -109,6 +111,143 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(api);
 });
 
+// =================== WIDGET RUNTIME (per-widget live updates) ===================
+class WidgetRuntimeNotifier extends StateNotifier<Map<String, ScadaWidget>> {
+  WidgetRuntimeNotifier() : super({});
+
+  void initialize(List<ScadaWidget> widgets) {
+    state = {for (final w in widgets) w.id: w};
+  }
+
+  void syncLayout(List<ScadaWidget> widgets) {
+    final current = {...state};
+    final next = <String, ScadaWidget>{};
+    for (final w in widgets) {
+      final existing = current[w.id];
+      next[w.id] = existing == null
+          ? w
+          : existing.copyWith(
+              label: w.label,
+              x: w.x,
+              y: w.y,
+              width: w.width,
+              height: w.height,
+              zero: w.zero,
+              span: w.span,
+              offset: w.offset,
+              multiplier: w.multiplier,
+              unit: w.unit,
+              dataSource: w.dataSource,
+              alarm: w.alarm,
+              ledDualConfig: w.ledDualConfig,
+              primaryColor: w.primaryColor,
+              secondaryColor: w.secondaryColor,
+              backgroundColor: w.backgroundColor,
+              textColor: w.textColor,
+              activeColor: w.activeColor,
+              inactiveColor: w.inactiveColor,
+              bgOpacity: w.bgOpacity,
+              bgTransparent: w.bgTransparent,
+              frameless: w.frameless,
+              animated: w.animated,
+              minValue: w.minValue,
+              maxValue: w.maxValue,
+              currentState: w.currentState,
+            );
+    }
+    state = next;
+  }
+
+  void upsert(ScadaWidget widget) {
+    state = {...state, widget.id: widget};
+  }
+
+  void updateLive(ScadaWidget widget) {
+    final existing = state[widget.id];
+    state = {
+      ...state,
+      widget.id: existing == null
+          ? widget
+          : existing.copyWith(
+              value: widget.value,
+              boolValue: widget.boolValue,
+              currentState: widget.currentState,
+              connectionStatus: widget.connectionStatus,
+              lastDataTime: widget.lastDataTime,
+              calcActiveSeconds: widget.calcActiveSeconds,
+              tableCells: widget.tableCells,
+            ),
+    };
+  }
+
+  void remove(String id) {
+    final next = {...state};
+    next.remove(id);
+    state = next;
+  }
+
+  void clear() => state = {};
+}
+
+final widgetRuntimeMapProvider = StateNotifierProvider<WidgetRuntimeNotifier, Map<String, ScadaWidget>>((ref) {
+  return WidgetRuntimeNotifier();
+});
+
+final widgetRuntimeByIdProvider = Provider.family<ScadaWidget?, String>((ref, id) {
+  final map = ref.watch(widgetRuntimeMapProvider);
+  return map[id];
+});
+
+// =================== WIDGET HISTORY (per-widget trend stream) ===================
+class WidgetHistoryNotifier extends StateNotifier<Map<String, List<double>>> {
+  WidgetHistoryNotifier() : super({});
+
+  void initialize(List<ScadaWidget> widgets) {
+    state = {for (final w in widgets) w.id: state[w.id] ?? <double>[]};
+  }
+
+  void clear() => state = {};
+
+  void remove(String widgetId) {
+    final next = {...state};
+    next.remove(widgetId);
+    state = next;
+  }
+
+  void append(String widgetId, double value, {int maxPoints = 30}) {
+    final current = List<double>.from(state[widgetId] ?? const []);
+    current.add(value);
+    if (current.length > maxPoints) {
+      current.removeRange(0, current.length - maxPoints);
+    }
+    state = {...state, widgetId: current};
+  }
+
+  void setHistory(String widgetId, List<double> values) {
+    state = {...state, widgetId: List<double>.from(values)};
+  }
+}
+
+final widgetHistoryMapProvider = StateNotifierProvider<WidgetHistoryNotifier, Map<String, List<double>>>((ref) {
+  return WidgetHistoryNotifier();
+});
+
+final widgetHistoryByIdProvider = Provider.family<List<double>, String>((ref, id) {
+  final map = ref.watch(widgetHistoryMapProvider);
+  return map[id] ?? const [];
+});
+
+// =================== LIVE TAG VALUES (for calculated widgets) ===================
+class LiveTagValueNotifier extends StateNotifier<Map<String, double>> {
+  LiveTagValueNotifier() : super({});
+  void setTagValue(String tagName, double value) => state = {...state, tagName: value};
+  void clear() => state = {};
+}
+
+final liveTagValuesProvider = StateNotifierProvider<LiveTagValueNotifier, Map<String, double>>((ref) {
+  return LiveTagValueNotifier();
+});
+
 // =================== PAGES ===================
 class PagesState {
   final List<PageSummary> pages;
@@ -161,39 +300,55 @@ final pagesProvider = StateNotifierProvider<PagesNotifier, PagesState>((ref) {
 // =================== CURRENT PAGE (DESIGNER/VIEWER) ===================
 class CurrentPageNotifier extends StateNotifier<ScadaPage?> {
   final ApiService _api;
+  final Ref _ref;
 
-  CurrentPageNotifier(this._api) : super(null);
+  CurrentPageNotifier(this._api, this._ref) : super(null);
 
   Future<void> loadPage(String id) async {
     final page = await _api.getPage(id);
     state = page;
+    _ref.read(widgetRuntimeMapProvider.notifier).initialize(page.widgets);
+    _ref.read(widgetHistoryMapProvider.notifier).initialize(page.widgets);
+    _ref.read(liveTagValuesProvider.notifier).clear();
   }
 
   void setPage(ScadaPage page) {
     state = page;
+    _ref.read(widgetRuntimeMapProvider.notifier).initialize(page.widgets);
+    _ref.read(widgetHistoryMapProvider.notifier).initialize(page.widgets);
+    _ref.read(liveTagValuesProvider.notifier).clear();
   }
 
   void addWidget(ScadaWidget widget) {
     if (state == null) return;
-    state = state!.copyWith(widgets: [...state!.widgets, widget]);
+    final next = state!.copyWith(widgets: [...state!.widgets, widget]);
+    state = next;
+    _ref.read(widgetRuntimeMapProvider.notifier).upsert(widget);
+    _ref.read(widgetHistoryMapProvider.notifier).initialize(next.widgets);
   }
 
   void updateWidget(ScadaWidget updated) {
     if (state == null) return;
-    state = state!.copyWith(
+    final next = state!.copyWith(
       widgets: state!.widgets.map((w) => w.id == updated.id ? updated : w).toList(),
     );
+    state = next;
+    _ref.read(widgetRuntimeMapProvider.notifier).upsert(updated);
   }
 
   void removeWidget(String id) {
     if (state == null) return;
-    state = state!.copyWith(
+    final next = state!.copyWith(
       widgets: state!.widgets.where((w) => w.id != id).toList(),
     );
+    state = next;
+    _ref.read(widgetRuntimeMapProvider.notifier).remove(id);
+    _ref.read(widgetHistoryMapProvider.notifier).remove(id);
   }
 
   void updatePage(ScadaPage page) {
     state = page;
+    _ref.read(widgetRuntimeMapProvider.notifier).syncLayout(page.widgets);
   }
 
   Future<void> save() async {
@@ -204,7 +359,7 @@ class CurrentPageNotifier extends StateNotifier<ScadaPage?> {
 
 final currentPageProvider = StateNotifierProvider<CurrentPageNotifier, ScadaPage?>((ref) {
   final api = ref.watch(apiServiceProvider);
-  return CurrentPageNotifier(api);
+  return CurrentPageNotifier(api, ref);
 });
 
 // =================== WIDGET SELECTION ===================

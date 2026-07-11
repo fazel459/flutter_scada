@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, unused_field, unused_local_variable
+
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -11,6 +13,7 @@ import '../providers/providers.dart';
 import '../models/widget_model.dart';
 import '../models/enums.dart';
 import '../services/data_service.dart';
+import '../services/formula_engine.dart';
 import '../widgets/widget_view.dart';
 import '../screens/widget_palette.dart';
 import '../screens/property_panel.dart';
@@ -29,6 +32,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
   final GlobalKey _canvasKey = GlobalKey();
   late DataSimulationService _dataService;
   Timer? _connectionTimer;
+  bool _simulationRunning = false;
+  String? _simulationPageId;
 
   DragData? _dragData;
   ResizeData? _resizeData;
@@ -38,13 +43,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     super.initState();
     _dataService = DataSimulationService(
       (updated) {
-        // Only update during view mode (not design mode)
         if (!ref.read(designModeProvider)) {
-          ref.read(currentPageProvider.notifier).updateWidget(updated);
+          _handleLiveUpdate(updated);
         }
       },
       (w, type, value) {
-        // Add local alarm
         final alarm = _createAlarm(w, type, value);
         ref.read(alarmProvider.notifier).addLocalAlarm(alarm);
       },
@@ -72,10 +75,174 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     );
   }
 
+  void _handleLiveUpdate(ScadaWidget updated) {
+    // 1) update widget runtime only for changed widget
+    ref.read(widgetRuntimeMapProvider.notifier).updateLive(updated);
+
+    // 2) update tag value map (by boundTagId or label fallback)
+    final tagName = (updated.boundTagId != null && updated.boundTagId!.isNotEmpty) ? updated.boundTagId! : updated.label;
+    ref.read(liveTagValuesProvider.notifier).setTagValue(tagName, updated.scaledValue);
+
+    // 3) update per-widget history only for affected history widgets
+    if (updated.type == WidgetType.graph || updated.type == WidgetType.chart) {
+      final pct = ((updated.scaledValue - updated.minValue) / (updated.maxValue - updated.minValue == 0 ? 1 : (updated.maxValue - updated.minValue))).clamp(0.0, 1.0);
+      ref.read(widgetHistoryMapProvider.notifier).append(updated.id, pct, maxPoints: 20);
+    }
+
+    // 4) update dependent widgets only (calculated / trend / spc / data table / animated path)
+    _updateDependentWidgets(updated, tagName);
+  }
+
+  void _recomputeAllDerivedWidgets() {
+    final page = ref.read(currentPageProvider);
+    if (page == null) return;
+    final runtimeMap = ref.read(widgetRuntimeMapProvider);
+
+    // seed tag map from all source widgets
+    final tagValues = <String, double>{};
+    for (final w in page.widgets) {
+      final rw = runtimeMap[w.id] ?? w;
+      final tagName = (rw.boundTagId != null && rw.boundTagId!.isNotEmpty) ? rw.boundTagId! : rw.label;
+      tagValues[tagName] = rw.scaledValue;
+      ref.read(liveTagValuesProvider.notifier).setTagValue(tagName, rw.scaledValue);
+    }
+
+    for (final w in page.widgets) {
+      if (w.type == WidgetType.calculated) {
+        final val = FormulaEngine.evaluate(w.calcFormula, tagValues);
+        if (val.isNaN || val.isInfinite) continue;
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
+          value: val,
+          boolValue: val != 0,
+          connectionStatus: ConnectionStatus.connected,
+          lastDataTime: DateTime.now(),
+        ));
+      }
+      if ((w.type == WidgetType.trendChart || w.type == WidgetType.spcChart) && w.boundTagId != null && tagValues.containsKey(w.boundTagId!)) {
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        final val = tagValues[w.boundTagId!]!;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(value: val, lastDataTime: DateTime.now(), connectionStatus: ConnectionStatus.connected));
+        ref.read(widgetHistoryMapProvider.notifier).append(w.id, val, maxPoints: w.trendPoints);
+      }
+      if (w.type == WidgetType.dataTable && w.tableCells.isNotEmpty) {
+        final updatedCells = w.tableCells.map((cell) {
+          final tag = cell['tagId'] ?? cell['tagName'];
+          if (tag != null && tagValues.containsKey(tag.toString())) {
+            return {...cell, 'value': tagValues[tag.toString()]};
+          }
+          return cell;
+        }).toList();
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(tableCells: updatedCells, lastDataTime: DateTime.now()));
+      }
+      if (w.type == WidgetType.animatedPath && w.boundTagId != null && tagValues.containsKey(w.boundTagId!)) {
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        final val = tagValues[w.boundTagId!]!;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(value: val, boolValue: val > 0, lastDataTime: DateTime.now(), connectionStatus: ConnectionStatus.connected));
+      }
+    }
+  }
+
+  void _updateDependentWidgets(ScadaWidget source, String sourceTagName) {
+    final page = ref.read(currentPageProvider);
+    if (page == null) return;
+    final runtimeMap = ref.read(widgetRuntimeMapProvider);
+    final tagValues = {...ref.read(liveTagValuesProvider)};
+
+    for (final w in page.widgets) {
+      // Calculated widgets: only if formula depends on changed tag
+      if (w.type == WidgetType.calculated) {
+        final used = FormulaEngine.extractTags(w.calcFormula);
+        final depends = used.contains(sourceTagName) || w.calcInputTags.contains(sourceTagName) || w.calcInputTags.contains(source.id) || (w.boundTagId == sourceTagName);
+        if (!depends) continue;
+
+        final val = FormulaEngine.evaluate(w.calcFormula, tagValues);
+        if (val.isNaN || val.isInfinite) continue;
+
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        final now = DateTime.now();
+        final nextSeconds = (prevRuntime.calcIsDigital && val != 0)
+            ? (prevRuntime.calcActiveSeconds + (prevRuntime.lastDataTime != null ? now.difference(prevRuntime.lastDataTime!).inMilliseconds / 1000.0 : 1.0))
+            : 0.0;
+
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
+          value: val,
+          boolValue: val != 0,
+          calcActiveSeconds: nextSeconds,
+          connectionStatus: ConnectionStatus.connected,
+          lastDataTime: now,
+        ));
+      }
+
+      // Trend/SPC widgets: only if boundTag matches changed tag
+      if ((w.type == WidgetType.trendChart || w.type == WidgetType.spcChart) &&
+          ((w.boundTagId != null && w.boundTagId == sourceTagName) || w.label == sourceTagName)) {
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
+          value: source.scaledValue,
+          connectionStatus: ConnectionStatus.connected,
+          lastDataTime: DateTime.now(),
+        ));
+        ref.read(widgetHistoryMapProvider.notifier).append(w.id, source.scaledValue, maxPoints: w.trendPoints);
+      }
+
+      // Data table widgets: update only matching cells
+      if (w.type == WidgetType.dataTable && w.tableCells.isNotEmpty) {
+        bool changed = false;
+        final updatedCells = w.tableCells.map((cell) {
+          if ((cell['tagId'] == sourceTagName) || (cell['tagName'] == sourceTagName)) {
+            changed = true;
+            return {
+              ...cell,
+              'value': source.scaledValue,
+              'unit': source.unit,
+              'quality': source.connectionStatus == ConnectionStatus.connected ? 'good' : 'bad',
+              'alarmColor': source.isInAlarm ? source.alarm.alarmColor : null,
+            };
+          }
+          return cell;
+        }).toList();
+        if (changed) {
+          final prevRuntime = runtimeMap[w.id] ?? w;
+          ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
+            tableCells: updatedCells,
+            connectionStatus: ConnectionStatus.connected,
+            lastDataTime: DateTime.now(),
+          ));
+        }
+      }
+
+      // Animated path widgets: if boundTag matches source, update value/bool only
+      if (w.type == WidgetType.animatedPath &&
+          ((w.boundTagId != null && w.boundTagId == sourceTagName) || w.label == sourceTagName)) {
+        final prevRuntime = runtimeMap[w.id] ?? w;
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
+          value: source.scaledValue,
+          boolValue: source.boolValue || source.scaledValue > 0,
+          connectionStatus: source.connectionStatus,
+          lastDataTime: DateTime.now(),
+        ));
+      }
+    }
+  }
+
   void _startDataSimulation() {
     final page = ref.read(currentPageProvider);
     if (page != null && !ref.read(designModeProvider)) {
+      if (_simulationRunning && _simulationPageId == page.id) return;
       _dataService.start(page.widgets);
+      _simulationRunning = true;
+      _simulationPageId = page.id;
+      _recomputeAllDerivedWidgets();
+    }
+  }
+
+  void _stopDataSimulation() {
+    if (_simulationRunning) {
+      _dataService.stop();
+      _simulationRunning = false;
+      _simulationPageId = null;
     }
   }
 
@@ -84,6 +251,15 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     final page = ref.watch(currentPageProvider);
     final designMode = ref.watch(designModeProvider);
     final user = ref.watch(authProvider).user!;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (page != null && !designMode) {
+        _startDataSimulation();
+      } else {
+        _stopDataSimulation();
+      }
+    });
     final panels = ref.watch(panelsVisibleProvider);
     final alarmState = ref.watch(alarmProvider);
     final serverTime = ref.watch(serverTimeProvider).value ?? DateTime.now();
@@ -225,7 +401,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                 )),
                 const SizedBox(width: 4),
                 Text(_timeString(serverTime),
-                    style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 10, fontFamily: 'monospace')),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10, fontFamily: 'monospace')),
               ],
             ),
 
@@ -916,6 +1092,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
     ref.read(currentPageProvider.notifier).addWidget(copied);
     ref.read(selectedWidgetIdProvider.notifier).state = newId;
+    _pushUndo(ref);
   }
 
   void _deleteWidget(WidgetRef ref) {
@@ -923,6 +1100,12 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     if (id == null) return;
     ref.read(currentPageProvider.notifier).removeWidget(id);
     ref.read(selectedWidgetIdProvider.notifier).state = null;
+    _pushUndo(ref);
+  }
+
+  void _pushUndo(WidgetRef ref) {
+    final p = ref.read(currentPageProvider);
+    if (p != null) ref.read(undoRedoProvider.notifier).pushState(p.widgets.map((w) => w.toJson()).toList());
   }
 
   Future<void> _savePage(WidgetRef ref) async {
