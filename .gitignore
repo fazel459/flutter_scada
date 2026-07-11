@@ -2,6 +2,6 @@
 .flutter-plugins
 .flutter-plugins-dependencies
 .idea/
-.vscode/
-test/
+.vscode
+test
 .packages
