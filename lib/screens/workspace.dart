@@ -38,6 +38,18 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
   DragData? _dragData;
   ResizeData? _resizeData;
 
+  // ✅ State درگ فوری
+  String? _draggingWidgetId;
+  Offset? _pointerStartGlobal;
+  double _widgetStartX = 0;
+  double _widgetStartY = 0;
+
+  // ✅ فلگ برای جلوگیری از درگ هنگام resize
+  bool _isResizing = false;
+
+  // ✅ موقعیت شروع pointer هنگام resize
+  Offset? _resizePointerStart;
+
   @override
   void initState() {
     super.initState();
@@ -68,7 +80,9 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
       alarmType: type,
       value: value,
       threshold: type.contains('high')
-          ? (type == 'highHigh' ? w.alarm.highHighThreshold : w.alarm.highThreshold)
+          ? (type == 'highHigh'
+              ? w.alarm.highHighThreshold
+              : w.alarm.highThreshold)
           : (type == 'lowLow' ? w.alarm.lowLowThreshold : w.alarm.lowThreshold),
       message: '${w.label} $type alarm: ${value.toStringAsFixed(1)}',
       createdAt: DateTime.now(),
@@ -80,13 +94,24 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     ref.read(widgetRuntimeMapProvider.notifier).updateLive(updated);
 
     // 2) update tag value map (by boundTagId or label fallback)
-    final tagName = (updated.boundTagId != null && updated.boundTagId!.isNotEmpty) ? updated.boundTagId! : updated.label;
-    ref.read(liveTagValuesProvider.notifier).setTagValue(tagName, updated.scaledValue);
+    final tagName =
+        (updated.boundTagId != null && updated.boundTagId!.isNotEmpty)
+            ? updated.boundTagId!
+            : updated.label;
+    ref
+        .read(liveTagValuesProvider.notifier)
+        .setTagValue(tagName, updated.scaledValue);
 
     // 3) update per-widget history only for affected history widgets
     if (updated.type == WidgetType.graph || updated.type == WidgetType.chart) {
-      final pct = ((updated.scaledValue - updated.minValue) / (updated.maxValue - updated.minValue == 0 ? 1 : (updated.maxValue - updated.minValue))).clamp(0.0, 1.0);
-      ref.read(widgetHistoryMapProvider.notifier).append(updated.id, pct, maxPoints: 20);
+      final pct = ((updated.scaledValue - updated.minValue) /
+              (updated.maxValue - updated.minValue == 0
+                  ? 1
+                  : (updated.maxValue - updated.minValue)))
+          .clamp(0.0, 1.0);
+      ref
+          .read(widgetHistoryMapProvider.notifier)
+          .append(updated.id, pct, maxPoints: 20);
     }
 
     // 4) update dependent widgets only (calculated / trend / spc / data table / animated path)
@@ -102,9 +127,13 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     final tagValues = <String, double>{};
     for (final w in page.widgets) {
       final rw = runtimeMap[w.id] ?? w;
-      final tagName = (rw.boundTagId != null && rw.boundTagId!.isNotEmpty) ? rw.boundTagId! : rw.label;
+      final tagName = (rw.boundTagId != null && rw.boundTagId!.isNotEmpty)
+          ? rw.boundTagId!
+          : rw.label;
       tagValues[tagName] = rw.scaledValue;
-      ref.read(liveTagValuesProvider.notifier).setTagValue(tagName, rw.scaledValue);
+      ref
+          .read(liveTagValuesProvider.notifier)
+          .setTagValue(tagName, rw.scaledValue);
     }
 
     for (final w in page.widgets) {
@@ -112,18 +141,28 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
         final val = FormulaEngine.evaluate(w.calcFormula, tagValues);
         if (val.isNaN || val.isInfinite) continue;
         final prevRuntime = runtimeMap[w.id] ?? w;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
-          value: val,
-          boolValue: val != 0,
-          connectionStatus: ConnectionStatus.connected,
-          lastDataTime: DateTime.now(),
-        ));
+        ref
+            .read(widgetRuntimeMapProvider.notifier)
+            .updateLive(prevRuntime.copyWith(
+              value: val,
+              boolValue: val != 0,
+              connectionStatus: ConnectionStatus.connected,
+              lastDataTime: DateTime.now(),
+            ));
       }
-      if ((w.type == WidgetType.trendChart || w.type == WidgetType.spcChart) && w.boundTagId != null && tagValues.containsKey(w.boundTagId!)) {
+      if ((w.type == WidgetType.trendChart || w.type == WidgetType.spcChart) &&
+          w.boundTagId != null &&
+          tagValues.containsKey(w.boundTagId!)) {
         final prevRuntime = runtimeMap[w.id] ?? w;
         final val = tagValues[w.boundTagId!]!;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(value: val, lastDataTime: DateTime.now(), connectionStatus: ConnectionStatus.connected));
-        ref.read(widgetHistoryMapProvider.notifier).append(w.id, val, maxPoints: w.trendPoints);
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(
+            prevRuntime.copyWith(
+                value: val,
+                lastDataTime: DateTime.now(),
+                connectionStatus: ConnectionStatus.connected));
+        ref
+            .read(widgetHistoryMapProvider.notifier)
+            .append(w.id, val, maxPoints: w.trendPoints);
       }
       if (w.type == WidgetType.dataTable && w.tableCells.isNotEmpty) {
         final updatedCells = w.tableCells.map((cell) {
@@ -134,12 +173,20 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
           return cell;
         }).toList();
         final prevRuntime = runtimeMap[w.id] ?? w;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(tableCells: updatedCells, lastDataTime: DateTime.now()));
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime
+            .copyWith(tableCells: updatedCells, lastDataTime: DateTime.now()));
       }
-      if (w.type == WidgetType.animatedPath && w.boundTagId != null && tagValues.containsKey(w.boundTagId!)) {
+      if (w.type == WidgetType.animatedPath &&
+          w.boundTagId != null &&
+          tagValues.containsKey(w.boundTagId!)) {
         final prevRuntime = runtimeMap[w.id] ?? w;
         final val = tagValues[w.boundTagId!]!;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(value: val, boolValue: val > 0, lastDataTime: DateTime.now(), connectionStatus: ConnectionStatus.connected));
+        ref.read(widgetRuntimeMapProvider.notifier).updateLive(
+            prevRuntime.copyWith(
+                value: val,
+                boolValue: val > 0,
+                lastDataTime: DateTime.now(),
+                connectionStatus: ConnectionStatus.connected));
       }
     }
   }
@@ -154,7 +201,10 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
       // Calculated widgets: only if formula depends on changed tag
       if (w.type == WidgetType.calculated) {
         final used = FormulaEngine.extractTags(w.calcFormula);
-        final depends = used.contains(sourceTagName) || w.calcInputTags.contains(sourceTagName) || w.calcInputTags.contains(source.id) || (w.boundTagId == sourceTagName);
+        final depends = used.contains(sourceTagName) ||
+            w.calcInputTags.contains(sourceTagName) ||
+            w.calcInputTags.contains(source.id) ||
+            (w.boundTagId == sourceTagName);
         if (!depends) continue;
 
         final val = FormulaEngine.evaluate(w.calcFormula, tagValues);
@@ -163,41 +213,55 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
         final prevRuntime = runtimeMap[w.id] ?? w;
         final now = DateTime.now();
         final nextSeconds = (prevRuntime.calcIsDigital && val != 0)
-            ? (prevRuntime.calcActiveSeconds + (prevRuntime.lastDataTime != null ? now.difference(prevRuntime.lastDataTime!).inMilliseconds / 1000.0 : 1.0))
+            ? (prevRuntime.calcActiveSeconds +
+                (prevRuntime.lastDataTime != null
+                    ? now.difference(prevRuntime.lastDataTime!).inMilliseconds /
+                        1000.0
+                    : 1.0))
             : 0.0;
 
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
-          value: val,
-          boolValue: val != 0,
-          calcActiveSeconds: nextSeconds,
-          connectionStatus: ConnectionStatus.connected,
-          lastDataTime: now,
-        ));
+        ref
+            .read(widgetRuntimeMapProvider.notifier)
+            .updateLive(prevRuntime.copyWith(
+              value: val,
+              boolValue: val != 0,
+              calcActiveSeconds: nextSeconds,
+              connectionStatus: ConnectionStatus.connected,
+              lastDataTime: now,
+            ));
       }
 
       // Trend/SPC widgets: only if boundTag matches changed tag
       if ((w.type == WidgetType.trendChart || w.type == WidgetType.spcChart) &&
-          ((w.boundTagId != null && w.boundTagId == sourceTagName) || w.label == sourceTagName)) {
+          ((w.boundTagId != null && w.boundTagId == sourceTagName) ||
+              w.label == sourceTagName)) {
         final prevRuntime = runtimeMap[w.id] ?? w;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
-          value: source.scaledValue,
-          connectionStatus: ConnectionStatus.connected,
-          lastDataTime: DateTime.now(),
-        ));
-        ref.read(widgetHistoryMapProvider.notifier).append(w.id, source.scaledValue, maxPoints: w.trendPoints);
+        ref
+            .read(widgetRuntimeMapProvider.notifier)
+            .updateLive(prevRuntime.copyWith(
+              value: source.scaledValue,
+              connectionStatus: ConnectionStatus.connected,
+              lastDataTime: DateTime.now(),
+            ));
+        ref
+            .read(widgetHistoryMapProvider.notifier)
+            .append(w.id, source.scaledValue, maxPoints: w.trendPoints);
       }
 
       // Data table widgets: update only matching cells
       if (w.type == WidgetType.dataTable && w.tableCells.isNotEmpty) {
         bool changed = false;
         final updatedCells = w.tableCells.map((cell) {
-          if ((cell['tagId'] == sourceTagName) || (cell['tagName'] == sourceTagName)) {
+          if ((cell['tagId'] == sourceTagName) ||
+              (cell['tagName'] == sourceTagName)) {
             changed = true;
             return {
               ...cell,
               'value': source.scaledValue,
               'unit': source.unit,
-              'quality': source.connectionStatus == ConnectionStatus.connected ? 'good' : 'bad',
+              'quality': source.connectionStatus == ConnectionStatus.connected
+                  ? 'good'
+                  : 'bad',
               'alarmColor': source.isInAlarm ? source.alarm.alarmColor : null,
             };
           }
@@ -205,24 +269,29 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
         }).toList();
         if (changed) {
           final prevRuntime = runtimeMap[w.id] ?? w;
-          ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
-            tableCells: updatedCells,
-            connectionStatus: ConnectionStatus.connected,
-            lastDataTime: DateTime.now(),
-          ));
+          ref
+              .read(widgetRuntimeMapProvider.notifier)
+              .updateLive(prevRuntime.copyWith(
+                tableCells: updatedCells,
+                connectionStatus: ConnectionStatus.connected,
+                lastDataTime: DateTime.now(),
+              ));
         }
       }
 
       // Animated path widgets: if boundTag matches source, update value/bool only
       if (w.type == WidgetType.animatedPath &&
-          ((w.boundTagId != null && w.boundTagId == sourceTagName) || w.label == sourceTagName)) {
+          ((w.boundTagId != null && w.boundTagId == sourceTagName) ||
+              w.label == sourceTagName)) {
         final prevRuntime = runtimeMap[w.id] ?? w;
-        ref.read(widgetRuntimeMapProvider.notifier).updateLive(prevRuntime.copyWith(
-          value: source.scaledValue,
-          boolValue: source.boolValue || source.scaledValue > 0,
-          connectionStatus: source.connectionStatus,
-          lastDataTime: DateTime.now(),
-        ));
+        ref
+            .read(widgetRuntimeMapProvider.notifier)
+            .updateLive(prevRuntime.copyWith(
+              value: source.scaledValue,
+              boolValue: source.boolValue || source.scaledValue > 0,
+              connectionStatus: source.connectionStatus,
+              lastDataTime: DateTime.now(),
+            ));
       }
     }
   }
@@ -279,7 +348,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
         child: Column(
           children: [
             // ============ TOOLBAR ============
-            _buildToolbar(context, ref, page, designMode, user, alarmState.unacknowledged, serverTime, isMobile),
+            _buildToolbar(context, ref, page, designMode, user,
+                alarmState.unacknowledged, serverTime, isMobile),
 
             // ============ MAIN AREA ============
             Expanded(
@@ -297,15 +367,20 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                       top: 0,
                       bottom: isMobile ? null : 0,
                       width: isMobile ? 180 : 224,
-                      height: isMobile ? MediaQuery.of(context).size.height * 0.55 : null,
+                      height: isMobile
+                          ? MediaQuery.of(context).size.height * 0.55
+                          : null,
                       child: Container(
                         decoration: BoxDecoration(
                           color: const Color(0xFF1E293B),
                           borderRadius: isMobile
-                              ? const BorderRadius.only(bottomRight: Radius.circular(12))
+                              ? const BorderRadius.only(
+                                  bottomRight: Radius.circular(12))
                               : null,
                           boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 8),
+                            BoxShadow(
+                                color: Colors.black.withOpacity(0.4),
+                                blurRadius: 8),
                           ],
                         ),
                         child: const WidgetPalette(),
@@ -313,7 +388,9 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                     ),
 
                   // Property panel - در موبایل overlay
-                  if (designMode && panels['propertyPanel'] == true && ref.watch(selectedWidgetProvider) != null)
+                  if (designMode &&
+                      panels['propertyPanel'] == true &&
+                      ref.watch(selectedWidgetProvider) != null)
                     Positioned(
                       right: 0,
                       top: 0,
@@ -336,8 +413,15 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     );
   }
 
-  Widget _buildToolbar(BuildContext context, WidgetRef ref, ScadaPage page, bool designMode,
-      User user, int unacknowledged, DateTime serverTime, bool isMobile) {
+  Widget _buildToolbar(
+      BuildContext context,
+      WidgetRef ref,
+      ScadaPage page,
+      bool designMode,
+      User user,
+      int unacknowledged,
+      DateTime serverTime,
+      bool isMobile) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 4 : 12, vertical: 4),
       decoration: const BoxDecoration(
@@ -359,7 +443,10 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
           if (!isMobile)
             Flexible(
               child: Text(page.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis),
             ),
 
@@ -369,20 +456,30 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
               padding: const EdgeInsets.only(left: 4),
               child: isMobile
                   ? IconButton(
-                      onPressed: () => ref.read(designModeProvider.notifier).state = !designMode,
+                      onPressed: () => ref
+                          .read(designModeProvider.notifier)
+                          .state = !designMode,
                       icon: Icon(designMode ? Icons.visibility : Icons.build,
-                          size: 18, color: designMode ? Colors.orange : Colors.white70),
+                          size: 18,
+                          color: designMode ? Colors.orange : Colors.white70),
                       tooltip: designMode ? 'View' : 'Design',
-                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
                       padding: EdgeInsets.zero,
                     )
                   : ElevatedButton.icon(
-                      onPressed: () => ref.read(designModeProvider.notifier).state = !designMode,
-                      icon: Icon(designMode ? Icons.visibility : Icons.build, size: 14),
-                      label: Text(designMode ? 'View' : 'Design', style: const TextStyle(fontSize: 11)),
+                      onPressed: () => ref
+                          .read(designModeProvider.notifier)
+                          .state = !designMode,
+                      icon: Icon(designMode ? Icons.visibility : Icons.build,
+                          size: 14),
+                      label: Text(designMode ? 'View' : 'Design',
+                          style: const TextStyle(fontSize: 11)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: designMode ? Colors.orange : Colors.grey[700],
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        backgroundColor:
+                            designMode ? Colors.orange : Colors.grey[700],
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         minimumSize: Size.zero,
                       ),
                     ),
@@ -395,19 +492,28 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(width: 6, height: 6, decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: !designMode ? Colors.green : Colors.amber,
-                )),
+                Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: !designMode ? Colors.green : Colors.amber,
+                    )),
                 const SizedBox(width: 4),
                 Text(_timeString(serverTime),
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10, fontFamily: 'monospace')),
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 10,
+                        fontFamily: 'monospace')),
               ],
             ),
 
           // Reports
           _toolbarIcon(Icons.analytics, 'Reports', () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => ReportScreen(pageId: page.id)));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => ReportScreen(pageId: page.id)));
           }, isMobile: isMobile),
 
           // Undo/Redo
@@ -415,17 +521,25 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
             _toolbarIcon(Icons.undo, 'Undo', () {
               final data = ref.read(undoRedoProvider.notifier).undo();
               if (data != null) {
-                final widgets = data.map((j) => ScadaWidget.fromJson(j)).toList();
+                final widgets =
+                    data.map((j) => ScadaWidget.fromJson(j)).toList();
                 final p = ref.read(currentPageProvider);
-                if (p != null) ref.read(currentPageProvider.notifier).updatePage(p.copyWith(widgets: widgets));
+                if (p != null)
+                  ref
+                      .read(currentPageProvider.notifier)
+                      .updatePage(p.copyWith(widgets: widgets));
               }
             }, isMobile: isMobile),
             _toolbarIcon(Icons.redo, 'Redo', () {
               final data = ref.read(undoRedoProvider.notifier).redo();
               if (data != null) {
-                final widgets = data.map((j) => ScadaWidget.fromJson(j)).toList();
+                final widgets =
+                    data.map((j) => ScadaWidget.fromJson(j)).toList();
                 final p = ref.read(currentPageProvider);
-                if (p != null) ref.read(currentPageProvider.notifier).updatePage(p.copyWith(widgets: widgets));
+                if (p != null)
+                  ref
+                      .read(currentPageProvider.notifier)
+                      .updatePage(p.copyWith(widgets: widgets));
               }
             }, isMobile: isMobile),
           ],
@@ -435,7 +549,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
             _toolbarIcon(
               ref.watch(gridEnabledProvider) ? Icons.grid_on : Icons.grid_off,
               'Grid',
-              () => ref.read(gridEnabledProvider.notifier).state = !ref.read(gridEnabledProvider),
+              () => ref.read(gridEnabledProvider.notifier).state =
+                  !ref.read(gridEnabledProvider),
               isMobile: isMobile,
             ),
 
@@ -443,40 +558,53 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
           if (designMode)
             _toolbarIcon(
               Icons.straighten,
-              ref.watch(smartGuidesEnabledProvider) ? 'Guides ON' : 'Guides OFF',
-              () => ref.read(smartGuidesEnabledProvider.notifier).state = !ref.read(smartGuidesEnabledProvider),
-              color: ref.watch(smartGuidesEnabledProvider) ? Colors.green : null,
+              ref.watch(smartGuidesEnabledProvider)
+                  ? 'Guides ON'
+                  : 'Guides OFF',
+              () => ref.read(smartGuidesEnabledProvider.notifier).state =
+                  !ref.read(smartGuidesEnabledProvider),
+              color:
+                  ref.watch(smartGuidesEnabledProvider) ? Colors.green : null,
               isMobile: isMobile,
             ),
 
           // Save
           if (designMode)
-            _toolbarIcon(Icons.save, 'Save', () => _savePage(ref), color: Colors.green, isMobile: isMobile),
+            _toolbarIcon(Icons.save, 'Save', () => _savePage(ref),
+                color: Colors.green, isMobile: isMobile),
 
           // Alarm toggle
           _toolbarIcon(
             Icons.notifications,
             'Alarms',
-            () => ref.read(panelsVisibleProvider.notifier).update((s) => {...s, 'alarmPanel': !(s['alarmPanel'] ?? false)}),
+            () => ref.read(panelsVisibleProvider.notifier).update(
+                (s) => {...s, 'alarmPanel': !(s['alarmPanel'] ?? false)}),
             badge: unacknowledged,
             isMobile: isMobile,
           ),
 
           // Panels toggle
           if (designMode)
-            _toolbarIcon(Icons.widgets, 'Widgets',
-              () => ref.read(panelsVisibleProvider.notifier).update((s) => {...s, 'widgetPalette': !(s['widgetPalette'] ?? false)}),
-              isMobile: isMobile),
+            _toolbarIcon(
+                Icons.widgets,
+                'Widgets',
+                () => ref.read(panelsVisibleProvider.notifier).update((s) =>
+                    {...s, 'widgetPalette': !(s['widgetPalette'] ?? false)}),
+                isMobile: isMobile),
           if (designMode)
-            _toolbarIcon(Icons.tune, 'Props',
-              () => ref.read(panelsVisibleProvider.notifier).update((s) => {...s, 'propertyPanel': !(s['propertyPanel'] ?? false)}),
-              isMobile: isMobile),
+            _toolbarIcon(
+                Icons.tune,
+                'Props',
+                () => ref.read(panelsVisibleProvider.notifier).update((s) =>
+                    {...s, 'propertyPanel': !(s['propertyPanel'] ?? false)}),
+                isMobile: isMobile),
         ],
       ),
     );
   }
 
-  Widget _toolbarIcon(IconData icon, String tooltip, VoidCallback onPressed, {Color? color, int? badge, bool isMobile = false}) {
+  Widget _toolbarIcon(IconData icon, String tooltip, VoidCallback onPressed,
+      {Color? color, int? badge, bool isMobile = false}) {
     return Padding(
       padding: const EdgeInsets.only(left: 2),
       child: Stack(
@@ -495,8 +623,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
               child: Container(
                 padding: const EdgeInsets.all(2),
                 constraints: const BoxConstraints(minWidth: 14),
-                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                child: Text('$badge', style: const TextStyle(fontSize: 8, color: Colors.white), textAlign: TextAlign.center),
+                decoration: const BoxDecoration(
+                    color: Colors.red, shape: BoxShape.circle),
+                child: Text('$badge',
+                    style: const TextStyle(fontSize: 8, color: Colors.white),
+                    textAlign: TextAlign.center),
               ),
             ),
         ],
@@ -511,7 +642,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
   static const double _guideSnapThreshold = 5.0;
 
-  SmartGuideLines _computeSmartGuides(WidgetRef ref, ScadaWidget dragging, double newX, double newY) {
+  SmartGuideLines _computeSmartGuides(
+      WidgetRef ref, ScadaWidget dragging, double newX, double newY) {
     final page = ref.read(currentPageProvider);
     if (page == null) return const SmartGuideLines();
 
@@ -530,8 +662,10 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     final chLines = <double>[];
 
     // Canvas center
-    if ((dragCx - canvasW / 2).abs() < _guideSnapThreshold) cvLines.add(canvasW / 2);
-    if ((dragCy - canvasH / 2).abs() < _guideSnapThreshold) chLines.add(canvasH / 2);
+    if ((dragCx - canvasW / 2).abs() < _guideSnapThreshold)
+      cvLines.add(canvasW / 2);
+    if ((dragCy - canvasH / 2).abs() < _guideSnapThreshold)
+      chLines.add(canvasH / 2);
 
     for (final other in page.widgets) {
       if (other.id == dragging.id) continue;
@@ -573,7 +707,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     );
   }
 
-  (double, double) _snapToGuides(SmartGuideLines guides, ScadaWidget w, double x, double y) {
+  (double, double) _snapToGuides(
+      SmartGuideLines guides, ScadaWidget w, double x, double y) {
     var nx = x;
     var ny = y;
     final cx = x + w.width / 2;
@@ -596,7 +731,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     return (nx, ny);
   }
 
-  Widget _buildCanvas(BuildContext context, WidgetRef ref, ScadaPage page, bool designMode, Map<String, bool> panels) {
+  Widget _buildCanvas(BuildContext context, WidgetRef ref, ScadaPage page,
+      bool designMode, Map<String, bool> panels) {
     final selectedPaletteType = ref.watch(selectedPaletteTypeProvider);
     final gridEnabled = ref.watch(gridEnabledProvider);
     final gridSize = ref.watch(gridSizeProvider);
@@ -630,9 +766,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
                   // اگر ویجتی از palette انتخاب شده، اینجا قرار بده
                   if (selectedPaletteType != null) {
-                    final renderBox = _canvasKey.currentContext?.findRenderObject() as RenderBox?;
+                    final renderBox = _canvasKey.currentContext
+                        ?.findRenderObject() as RenderBox?;
                     if (renderBox != null) {
-                      final local = renderBox.globalToLocal(details.globalPosition);
+                      final local =
+                          renderBox.globalToLocal(details.globalPosition);
                       _addWidget(ref, selectedPaletteType, local.dx, local.dy);
                       // انتخاب palette حفظ می‌شود تا بتوان چند ویجت یکسان گذاشت
                     }
@@ -645,7 +783,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                 child: DragTarget<WidgetType>(
                   onAcceptWithDetails: (details) {
                     final type = details.data;
-                    final renderBox = _canvasKey.currentContext?.findRenderObject() as RenderBox?;
+                    final renderBox = _canvasKey.currentContext
+                        ?.findRenderObject() as RenderBox?;
                     if (renderBox != null) {
                       final local = renderBox.globalToLocal(details.offset);
                       _addWidget(ref, type, local.dx, local.dy);
@@ -654,8 +793,10 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                   builder: (context, candidateData, rejectedData) {
                     return Container(
                       key: _canvasKey,
-                      width: math.max(page.width, MediaQuery.of(context).size.width),
-                      height: math.max(page.height, MediaQuery.of(context).size.height),
+                      width: math.max(
+                          page.width, MediaQuery.of(context).size.width),
+                      height: math.max(
+                          page.height, MediaQuery.of(context).size.height),
                       decoration: BoxDecoration(
                         border: designMode
                             ? Border.all(
@@ -667,8 +808,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                             : null,
                       ),
                       child: Stack(
-                        children: (List.from(page.widgets)..sort((a, b) => (a.zOrder).compareTo(b.zOrder))).map((widget) {
-                          return _buildWidget(widget as ScadaWidget, ref, designMode);
+                        children: (List.from(page.widgets)
+                              ..sort((a, b) => (a.zOrder).compareTo(b.zOrder)))
+                            .map((widget) {
+                          return _buildWidget(
+                              widget as ScadaWidget, ref, designMode);
                         }).toList(),
                       ),
                     );
@@ -698,12 +842,14 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.85),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8),
+                      BoxShadow(
+                          color: Colors.black.withOpacity(0.3), blurRadius: 8),
                     ],
                   ),
                   child: Row(
@@ -713,18 +859,24 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                       const SizedBox(width: 6),
                       Text(
                         'Tap to place: ${selectedPaletteType.label}',
-                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () => ref.read(selectedPaletteTypeProvider.notifier).state = null,
+                        onTap: () => ref
+                            .read(selectedPaletteTypeProvider.notifier)
+                            .state = null,
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.2),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close, color: Colors.white, size: 14),
+                          child: const Icon(Icons.close,
+                              color: Colors.white, size: 14),
                         ),
                       ),
                     ],
@@ -746,7 +898,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                       selectedPaletteType != null
                           ? 'Now tap anywhere to place ${selectedPaletteType.label}'
                           : 'Select a widget from the panel,\nthen tap here to place it',
-                      style: const TextStyle(color: Colors.white38, fontSize: 16),
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -771,162 +924,215 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     final isSelected = selectedId == widget.id;
     final isMultiSelected = multiMode && multiIds.contains(widget.id);
 
+    // فضای اضافی برای دستگیره‌ها
+    const double handleOverflow = 22.0;
+    // ارتفاع نوار اکشن
+    const double actionBarH = 44.0;
+
     return Positioned(
-      left: widget.x,
-      top: widget.y,
-      // اضافه کردن فضا برای نوار اکشن شناور
-      width: widget.width,
-      height: widget.height + (designMode && isSelected ? 44 : 0),
-      child: Column(
+      // موقعیت شامل فضای دستگیره
+      left: widget.x - handleOverflow,
+      top: widget.y - handleOverflow,
+      width: widget.width + handleOverflow * 2,
+      height: widget.height +
+          handleOverflow * 2 +
+          (designMode && isSelected ? actionBarH : 0),
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // ویجت اصلی
-          SizedBox(
+          // ─── لایه 1: محتوای ویجت + درگ ───
+          Positioned(
+            left: handleOverflow,
+            top: handleOverflow,
             width: widget.width,
             height: widget.height,
             child: Listener(
               behavior: HitTestBehavior.opaque,
-              onPointerDown: (_) {
-                if (designMode && selectedPaletteType == null) {
-                  // Multi-select mode
-                  final multiMode = ref.read(multiSelectModeProvider);
-                  if (multiMode) {
-                    final ids = Set<String>.from(ref.read(multiSelectedIdsProvider));
-                    if (ids.contains(widget.id)) {
-                      ids.remove(widget.id);
-                    } else {
-                      ids.add(widget.id);
-                    }
-                    ref.read(multiSelectedIdsProvider.notifier).state = ids;
+              onPointerDown: (event) {
+                if (!designMode || selectedPaletteType != null) return;
+                if (_isResizing) return;
+
+                // Multi-select
+                if (multiMode) {
+                  final ids =
+                      Set<String>.from(ref.read(multiSelectedIdsProvider));
+                  if (ids.contains(widget.id)) {
+                    ids.remove(widget.id);
                   } else {
-                    ref.read(selectedWidgetIdProvider.notifier).state = widget.id;
+                    ids.add(widget.id);
                   }
+                  ref.read(multiSelectedIdsProvider.notifier).state = ids;
+                  return;
+                }
+
+                // انتخاب ویجت
+                ref.read(selectedWidgetIdProvider.notifier).state = widget.id;
+
+                if (widget.locked) return;
+
+                // شروع درگ
+                setState(() {
+                  _draggingWidgetId = widget.id;
+                  _pointerStartGlobal = event.position;
+                  _widgetStartX = widget.x;
+                  _widgetStartY = widget.y;
+                });
+              },
+              onPointerMove: (event) {
+                if (_draggingWidgetId != widget.id ||
+                    _pointerStartGlobal == null ||
+                    _isResizing) return;
+
+                final delta = event.position - _pointerStartGlobal!;
+                var newX = _widgetStartX + delta.dx;
+                var newY = _widgetStartY + delta.dy;
+
+                // Snap to grid
+                if (ref.read(snapToGridProvider) &&
+                    ref.read(gridEnabledProvider)) {
+                  final grid = ref.read(gridSizeProvider);
+                  newX = (newX / grid).round() * grid.toDouble();
+                  newY = (newY / grid).round() * grid.toDouble();
+                }
+
+                newX = math.max(0.0, newX);
+                newY = math.max(0.0, newY);
+
+                // ✅ Smart Guides حین درگ
+                if (ref.read(smartGuidesEnabledProvider)) {
+                  final tempWidget = widget.copyWith(x: newX, y: newY);
+                  final guides =
+                      _computeSmartGuides(ref, tempWidget, newX, newY);
+                  final (sx, sy) =
+                      _snapToGuides(guides, tempWidget, newX, newY);
+                  newX = sx;
+                  newY = sy;
+                  ref.read(activeGuidesProvider.notifier).state = guides;
+                }
+
+                ref
+                    .read(currentPageProvider.notifier)
+                    .updateWidget(widget.copyWith(x: newX, y: newY));
+              },
+              onPointerUp: (event) {
+                if (_draggingWidgetId != widget.id) return;
+
+                // پاک کردن guides
+                ref.read(activeGuidesProvider.notifier).state =
+                    const SmartGuideLines();
+
+                // Undo
+                final p = ref.read(currentPageProvider);
+                if (p != null) {
+                  ref
+                      .read(undoRedoProvider.notifier)
+                      .pushState(p.widgets.map((w) => w.toJson()).toList());
+                }
+
+                setState(() {
+                  _draggingWidgetId = null;
+                  _pointerStartGlobal = null;
+                });
+              },
+              onPointerCancel: (_) {
+                if (_draggingWidgetId == widget.id) {
+                  ref.read(activeGuidesProvider.notifier).state =
+                      const SmartGuideLines();
+                  setState(() {
+                    _draggingWidgetId = null;
+                    _pointerStartGlobal = null;
+                  });
                 }
               },
               child: GestureDetector(
                 onTap: () {
                   if (selectedPaletteType != null) return;
-                  final multiMode = ref.read(multiSelectModeProvider);
-                  if (!multiMode) {
-                    ref.read(selectedWidgetIdProvider.notifier).state = widget.id;
-                  }
-                  // View mode: اگر لینک صفحه داشته باشد → ناوبری
-                  if (!designMode && widget.linkedPageId != null && widget.linkedPageId!.isNotEmpty) {
+                  if (!designMode &&
+                      widget.linkedPageId != null &&
+                      widget.linkedPageId!.isNotEmpty) {
                     _navigateToPage(context, ref, widget.linkedPageId!);
                   }
                 },
-                onPanStart: designMode && selectedPaletteType == null && !widget.locked ? (details) {
-                  ref.read(selectedWidgetIdProvider.notifier).state = widget.id;
-                  _dragData = DragData(
-                    widgetId: widget.id,
-                    offsetX: details.localPosition.dx,
-                    offsetY: details.localPosition.dy,
-                  );
-                } : null,
-                onPanUpdate: designMode && selectedPaletteType == null && !widget.locked ? (details) {
-            if (_dragData?.widgetId == widget.id) {
-              final dx = details.localPosition.dx - _dragData!.offsetX;
-              final dy = details.localPosition.dy - _dragData!.offsetY;
-              final snap = ref.read(snapToGridProvider) && ref.read(gridEnabledProvider);
-              final grid = ref.read(gridSizeProvider);
-              var nx = math.max(0.0, widget.x + dx);
-              var ny = math.max(0.0, widget.y + dy);
-              if (snap) { nx = _snapToGrid(nx, grid, true); ny = _snapToGrid(ny, grid, true); }
-
-              // Smart Guides
-              if (ref.read(smartGuidesEnabledProvider)) {
-                final guides = _computeSmartGuides(ref, widget, nx, ny);
-                final (sx, sy) = _snapToGuides(guides, widget, nx, ny);
-                nx = sx; ny = sy;
-                ref.read(activeGuidesProvider.notifier).state = guides;
-              }
-
-              final updated = widget.copyWith(x: nx, y: ny);
-                    _dragData = _dragData!.copyWith(offsetX: details.localPosition.dx, offsetY: details.localPosition.dy);
-                    ref.read(currentPageProvider.notifier).updateWidget(updated);
-                  }
-                } : null,
-                onPanEnd: designMode ? (_) {
-            _dragData = null;
-            ref.read(activeGuidesProvider.notifier).state = const SmartGuideLines();
-            final p = ref.read(currentPageProvider);
-            if (p != null) ref.read(undoRedoProvider.notifier).pushState(p.widgets.map((w) => w.toJson()).toList());
-          } : null,
                 child: Container(
-                  decoration: isMultiSelected ? BoxDecoration(
-                    border: Border.all(color: Colors.orange, width: 2),
-                    borderRadius: BorderRadius.circular(4),
-                  ) : null,
+                  decoration: isMultiSelected
+                      ? BoxDecoration(
+                          border: Border.all(color: Colors.orange, width: 2),
+                          borderRadius: BorderRadius.circular(4),
+                        )
+                      : null,
                   child: ScadaWidgetView(
-                  widget: widget,
-                  designMode: designMode,
-                  selected: isSelected,
-                  onResizeStart: designMode && !widget.locked ? (handle) {
-                    _resizeData = ResizeData(
-                      widgetId: widget.id,
-                      handle: handle,
-                      startX: widget.x,
-                      startY: widget.y,
-                      startW: widget.width,
-                      startH: widget.height,
-                    );
-                    _resizeStartScale = _getScale(ref);
-                  } : null,
-                  onResizeUpdate: designMode ? (dx, dy) {
-                    if (_resizeData?.widgetId == widget.id) {
-                      _applyResize(ref, widget, _resizeData!, dx, dy);
-                    }
-                  } : null,
-            onResizeEnd: designMode ? () {
-              _resizeData = null;
-            } : null,
-          ),
-        ),
-        ),
-      ),
-    ),
-
-          // نوار اکشن شناور - حذف / کپی / تنظیمات
-          if (designMode && isSelected)
-            Container(
-              height: 40,
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFF475569)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _actionButton(Icons.copy, Colors.blue, 'Copy', () => _copyWidget(ref)),
-                  _actionButton(Icons.delete, Colors.red, 'Delete', () => _deleteWidget(ref)),
-                  _actionButton(Icons.tune, Colors.white70, 'Props', () {
-                    ref.read(panelsVisibleProvider.notifier).update((s) => {...s, 'propertyPanel': true});
-                  }),
-                  // Lock
-                  _actionButton(
-                    widget.locked ? Icons.lock : Icons.lock_open,
-                    widget.locked ? Colors.orange : Colors.white54,
-                    widget.locked ? 'Unlock' : 'Lock',
-                    () => ref.read(currentPageProvider.notifier).updateWidget(widget.copyWith(locked: !widget.locked)),
+                    widget: widget,
+                    designMode: designMode,
+                    selected: isSelected,
                   ),
-                  // Z-Order
-                  _actionButton(Icons.arrow_upward, Colors.white54, 'Bring Forward', () {
-                    ref.read(currentPageProvider.notifier).updateWidget(widget.copyWith(zOrder: widget.zOrder + 1));
-                  }),
-                  _actionButton(Icons.arrow_downward, Colors.white54, 'Send Back', () {
-                    ref.read(currentPageProvider.notifier).updateWidget(widget.copyWith(zOrder: math.max(0, widget.zOrder - 1)));
-                  }),
-                  const SizedBox(width: 4),
-                  Text('${widget.width.toInt()}×${widget.height.toInt()}',
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 10)),
-                  if (widget.locked) const Padding(padding: EdgeInsets.only(left: 2),
-                    child: Icon(Icons.lock, size: 10, color: Colors.orange)),
-                ],
+                ),
+              ),
+            ),
+          ),
+
+          // ─── لایه 2: دستگیره‌های Resize ───
+          if (designMode && isSelected && !widget.locked)
+            ..._buildResizeHandles(widget, ref, handleOverflow),
+
+          // ─── لایه 3: نوار اکشن ───
+          if (designMode && isSelected)
+            Positioned(
+              left: handleOverflow,
+              top: handleOverflow + widget.height + 4,
+              child: Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF475569)),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Colors.black.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _actionButton(Icons.copy, Colors.blue, 'Copy',
+                        () => _copyWidget(ref)),
+                    _actionButton(Icons.delete, Colors.red, 'Delete',
+                        () => _deleteWidget(ref)),
+                    _actionButton(Icons.tune, Colors.white70, 'Props', () {
+                      ref
+                          .read(panelsVisibleProvider.notifier)
+                          .update((s) => {...s, 'propertyPanel': true});
+                    }),
+                    _actionButton(
+                      widget.locked ? Icons.lock : Icons.lock_open,
+                      widget.locked ? Colors.orange : Colors.white54,
+                      widget.locked ? 'Unlock' : 'Lock',
+                      () => ref.read(currentPageProvider.notifier).updateWidget(
+                          widget.copyWith(locked: !widget.locked)),
+                    ),
+                    _actionButton(Icons.arrow_upward, Colors.white54, 'Forward',
+                        () {
+                      ref.read(currentPageProvider.notifier).updateWidget(
+                          widget.copyWith(zOrder: widget.zOrder + 1));
+                    }),
+                    _actionButton(Icons.arrow_downward, Colors.white54, 'Back',
+                        () {
+                      ref.read(currentPageProvider.notifier).updateWidget(widget
+                          .copyWith(zOrder: math.max(0, widget.zOrder - 1)));
+                    }),
+                    const SizedBox(width: 4),
+                    Text('${widget.width.toInt()}×${widget.height.toInt()}',
+                        style: const TextStyle(
+                            color: Color(0xFF64748B), fontSize: 10)),
+                    if (widget.locked)
+                      const Padding(
+                          padding: EdgeInsets.only(left: 2),
+                          child:
+                              Icon(Icons.lock, size: 10, color: Colors.orange)),
+                  ],
+                ),
               ),
             ),
         ],
@@ -934,7 +1140,165 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     );
   }
 
-  Widget _actionButton(IconData icon, Color color, String tooltip, VoidCallback onTap) {
+  List<Widget> _buildResizeHandles(
+      ScadaWidget widget, WidgetRef ref, double offset) {
+    const double visualSize = 20.0;
+    const double touchSize = 40.0;
+
+    final double w = widget.width;
+    final double h = widget.height;
+
+    Widget handle(String id, double cx, double cy) {
+      return Positioned(
+        left: offset + cx - touchSize / 2,
+        top: offset + cy - touchSize / 2,
+        child: MouseRegion(
+          cursor: _resizeCursor(id),
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+
+            onPointerDown: (event) {
+              // ✅ فلگ resize → درگ غیرفعال
+              setState(() => _isResizing = true);
+
+              // ✅ ذخیره ابعاد اولیه ویجت
+              _resizeData = ResizeData(
+                widgetId: widget.id,
+                handle: id,
+                startX: widget.x,
+                startY: widget.y,
+                startW: widget.width,
+                startH: widget.height,
+              );
+
+              // ✅ ذخیره موقعیت شروع pointer
+              _resizePointerStart = event.position;
+            },
+
+            onPointerMove: (event) {
+              if (_resizeData == null ||
+                  _resizeData!.widgetId != widget.id ||
+                  _resizePointerStart == null) return;
+
+              // ✅ محاسبه مجموع تغییر از ابتدا (نه فقط یک فریم)
+              final totalDx =
+                  event.position.dx - _resizePointerStart!.dx;
+              final totalDy =
+                  event.position.dy - _resizePointerStart!.dy;
+
+              // ✅ ارسال مجموع تغییر به _applyResize
+              _applyResize(
+                  ref, widget, _resizeData!, totalDx, totalDy);
+            },
+
+            onPointerUp: (_) {
+              _resizeData = null;
+              _resizePointerStart = null;
+              setState(() => _isResizing = false);
+
+              // Undo
+              final p = ref.read(currentPageProvider);
+              if (p != null) {
+                ref.read(undoRedoProvider.notifier).pushState(
+                    p.widgets.map((w) => w.toJson()).toList());
+              }
+            },
+
+            onPointerCancel: (_) {
+              _resizeData = null;
+              _resizePointerStart = null;
+              setState(() => _isResizing = false);
+            },
+
+            child: Container(
+              width: touchSize,
+              height: touchSize,
+              alignment: Alignment.center,
+              color: Colors.transparent,
+              child: Container(
+                width: visualSize,
+                height: visualSize,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 4,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  _handleIcon(id),
+                  size: 10,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return [
+      handle('nw', 0, 0),
+      handle('ne', w, 0),
+      handle('sw', 0, h),
+      handle('se', w, h),
+      handle('n', w / 2, 0),
+      handle('s', w / 2, h),
+      handle('e', w, h / 2),
+      handle('w', 0, h / 2),
+    ];
+  }
+
+ MouseCursor _resizeCursor(String id) {
+    switch (id) {
+      case 'nw':
+      case 'se':
+        return SystemMouseCursors.resizeUpLeftDownRight;
+      case 'ne':
+      case 'sw':
+        return SystemMouseCursors.resizeUpRightDownLeft;
+      case 'n':
+      case 's':
+        return SystemMouseCursors.resizeUpDown;
+      case 'e':
+      case 'w':
+        return SystemMouseCursors.resizeLeftRight;
+      default:
+        return SystemMouseCursors.precise;
+    }
+  }
+
+  IconData _handleIcon(String id) {
+    switch (id) {
+      case 'nw':
+        return Icons.north_west;
+      case 'ne':
+        return Icons.north_east;
+      case 'sw':
+        return Icons.south_west;
+      case 'se':
+        return Icons.south_east;
+      case 'n':
+        return Icons.expand_less;
+      case 's':
+        return Icons.expand_more;
+      case 'e':
+        return Icons.chevron_right;
+      case 'w':
+        return Icons.chevron_left;
+      default:
+        return Icons.open_with;
+    }
+  }
+
+
+  Widget _actionButton(
+      IconData icon, Color color, String tooltip, VoidCallback onTap) {
     return Tooltip(
       message: tooltip,
       child: InkWell(
@@ -952,7 +1316,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
   double _getScale(WidgetRef ref) => 1.0;
 
-  void _applyResize(WidgetRef ref, ScadaWidget widget, ResizeData data, double dx, double dy) {
+  void _applyResize(WidgetRef ref, ScadaWidget widget, ResizeData data,
+      double dx, double dy) {
     String handle = data.handle;
     double newW = data.startW;
     double newH = data.startH;
@@ -971,8 +1336,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     }
 
     ref.read(currentPageProvider.notifier).updateWidget(
-      widget.copyWith(x: newX, y: newY, width: newW, height: newH),
-    );
+          widget.copyWith(x: newX, y: newY, width: newW, height: newH),
+        );
   }
 
   // ============ ACTIONS ============
@@ -990,7 +1355,9 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     // Push undo state
     final page = ref.read(currentPageProvider);
     if (page != null) {
-      ref.read(undoRedoProvider.notifier).pushState(page.widgets.map((w) => w.toJson()).toList());
+      ref
+          .read(undoRedoProvider.notifier)
+          .pushState(page.widgets.map((w) => w.toJson()).toList());
     }
   }
 
@@ -1034,7 +1401,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     };
 
     final size = sizes[type]!;
-    final unit = type == WidgetType.temperature ? '°C' : type == WidgetType.pressure ? 'kPa' : '';
+    final unit = type == WidgetType.temperature
+        ? '°C'
+        : type == WidgetType.pressure
+            ? 'kPa'
+            : '';
 
     return ScadaWidget(
       id: id,
@@ -1105,7 +1476,10 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
   void _pushUndo(WidgetRef ref) {
     final p = ref.read(currentPageProvider);
-    if (p != null) ref.read(undoRedoProvider.notifier).pushState(p.widgets.map((w) => w.toJson()).toList());
+    if (p != null)
+      ref
+          .read(undoRedoProvider.notifier)
+          .pushState(p.widgets.map((w) => w.toJson()).toList());
   }
 
   Future<void> _savePage(WidgetRef ref) async {
@@ -1117,7 +1491,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     }
   }
 
-  void _navigateToPage(BuildContext context, WidgetRef ref, String pageId) async {
+  void _navigateToPage(
+      BuildContext context, WidgetRef ref, String pageId) async {
     try {
       await ref.read(currentPageProvider.notifier).loadPage(pageId);
       // صفحه جدید بارگذاری شد - بدون تغییر route
@@ -1148,9 +1523,12 @@ class DragData {
   final String widgetId;
   final double offsetX;
   final double offsetY;
-  DragData({required this.widgetId, required this.offsetX, required this.offsetY});
-  DragData copyWith({double? offsetX, double? offsetY}) =>
-      DragData(widgetId: widgetId, offsetX: offsetX ?? this.offsetX, offsetY: offsetY ?? this.offsetY);
+  DragData(
+      {required this.widgetId, required this.offsetX, required this.offsetY});
+  DragData copyWith({double? offsetX, double? offsetY}) => DragData(
+      widgetId: widgetId,
+      offsetX: offsetX ?? this.offsetX,
+      offsetY: offsetY ?? this.offsetY);
 }
 
 class ResizeData {
@@ -1197,7 +1575,8 @@ class _SmartGuidesPainter extends CustomPainter {
     for (final x in guides.verticalLines) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), edgePaint);
       // tiny label
-      _drawMiniLabel(canvas, x + 2, 10, '${x.toInt()}', const Color(0xFFEF4444));
+      _drawMiniLabel(
+          canvas, x + 2, 10, '${x.toInt()}', const Color(0xFFEF4444));
     }
     for (final y in guides.horizontalLines) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), edgePaint);
@@ -1213,9 +1592,12 @@ class _SmartGuidesPainter extends CustomPainter {
     }
   }
 
-  void _drawMiniLabel(Canvas canvas, double x, double y, String text, Color color) {
+  void _drawMiniLabel(
+      Canvas canvas, double x, double y, String text, Color color) {
     final tp = TextPainter(
-      text: TextSpan(text: text, style: TextStyle(fontSize: 8, color: color.withOpacity(0.7))),
+      text: TextSpan(
+          text: text,
+          style: TextStyle(fontSize: 8, color: color.withOpacity(0.7))),
       textDirection: TextDirection.ltr,
     );
     tp.layout();

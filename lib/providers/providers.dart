@@ -355,6 +355,45 @@ class CurrentPageNotifier extends StateNotifier<ScadaPage?> {
     if (state == null) return;
     await _api.updatePage(state!.id, state!.toSaveJson());
   }
+
+  void updateWidgetPosition(String widgetId, double x, double y) {
+   if (state == null) return;
+    
+    final index = state!.widgets.indexWhere((w) => w.id == widgetId);
+    if (index == -1) return;
+    
+    final widget = state!.widgets[index];
+    
+    // اگر تغییر کمتر از 0.5 پیکسل است، نادیده بگیر
+    if ((widget.x - x).abs() < 0.5 && (widget.y - y).abs() < 0.5) return;
+    
+    // کپی لیست با تغییر فقط یک عنصر
+    final newWidgets = List<ScadaWidget>.from(state!.widgets);
+    newWidgets[index] = widget.copyWith(x: x, y: y);
+    
+    state = state!.copyWith(widgets: newWidgets);
+  }
+
+   /// ✅ متد بهینه برای آپدیت موقعیت و سایز همزمان (برای resize)
+  void updateWidgetBounds(String widgetId, double x, double y, double width, double height) {
+    if (state == null) return;
+    
+    final index = state!.widgets.indexWhere((w) => w.id == widgetId);
+    if (index == -1) return;
+    
+    final widget = state!.widgets[index];
+    
+    final newWidgets = List<ScadaWidget>.from(state!.widgets);
+    newWidgets[index] = widget.copyWith(
+      x: x, 
+      y: y, 
+      width: width.clamp(40.0, double.infinity), 
+      height: height.clamp(40.0, double.infinity),
+    );
+    
+    state = state!.copyWith(widgets: newWidgets);
+  }
+
 }
 
 final currentPageProvider = StateNotifierProvider<CurrentPageNotifier, ScadaPage?>((ref) {
