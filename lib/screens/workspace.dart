@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use, unused_field, unused_local_variable
+// ignore_for_file: unused_element, deprecated_member_use, unused_field, unused_local_variable
 
 import 'dart:async';
 import 'dart:math' as math;
@@ -524,10 +524,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                 final widgets =
                     data.map((j) => ScadaWidget.fromJson(j)).toList();
                 final p = ref.read(currentPageProvider);
-                if (p != null)
+                if (p != null) {
                   ref
                       .read(currentPageProvider.notifier)
                       .updatePage(p.copyWith(widgets: widgets));
+                }
               }
             }, isMobile: isMobile),
             _toolbarIcon(Icons.redo, 'Redo', () {
@@ -536,10 +537,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                 final widgets =
                     data.map((j) => ScadaWidget.fromJson(j)).toList();
                 final p = ref.read(currentPageProvider);
-                if (p != null)
+                if (p != null) {
                   ref
                       .read(currentPageProvider.notifier)
                       .updatePage(p.copyWith(widgets: widgets));
+                }
               }
             }, isMobile: isMobile),
           ],
@@ -981,7 +983,9 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
               onPointerMove: (event) {
                 if (_draggingWidgetId != widget.id ||
                     _pointerStartGlobal == null ||
-                    _isResizing) return;
+                    _isResizing) {
+                  return;
+                }
 
                 final delta = event.position - _pointerStartGlobal!;
                 var newX = _widgetStartX + delta.dx;
@@ -1178,7 +1182,9 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
             onPointerMove: (event) {
               if (_resizeData == null ||
                   _resizeData!.widgetId != widget.id ||
-                  _resizePointerStart == null) return;
+                  _resizePointerStart == null) {
+                return;
+              }
 
               // ✅ محاسبه مجموع تغییر از ابتدا (نه فقط یک فریم)
               final totalDx =
@@ -1312,7 +1318,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     );
   }
 
-  double _resizeStartScale = 1.0;
+  final double _resizeStartScale = 1.0;
 
   double _getScale(WidgetRef ref) => 1.0;
 

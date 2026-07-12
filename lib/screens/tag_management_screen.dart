@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import, use_build_context_synchronously, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/tag_model.dart';
@@ -333,7 +335,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
       context: context,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: Text(isNew ? '➕ New Tag' : '✏️ Edit: ${existing!.name}', style: const TextStyle(color: Colors.white, fontSize: 16)),
+        title: Text(isNew ? '➕ New Tag' : '✏️ Edit: ${existing.name}', style: const TextStyle(color: Colors.white, fontSize: 16)),
         content: SizedBox(
           width: 500, height: 450,
           child: Column(
@@ -403,7 +405,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
           ),
         ),
         actions: [
-          if (!isNew) TextButton(onPressed: () { Navigator.pop(ctx); _deleteTag(existing!); }, child: const Text('Delete', style: TextStyle(color: Colors.red))),
+          if (!isNew) TextButton(onPressed: () { Navigator.pop(ctx); _deleteTag(existing); }, child: const Text('Delete', style: TextStyle(color: Colors.red))),
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
@@ -419,7 +421,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
                 'alarmEnabled': alarmEnabled,
                 'highAlarm': double.tryParse(hiCtrl.text) ?? 80, 'lowAlarm': double.tryParse(loCtrl.text) ?? 20,
               };
-              if (isNew) { await api.post('/tags', body); } else { await api.put('/tags/${existing!.id}', body); }
+              if (isNew) { await api.post('/tags', body); } else { await api.put('/tags/${existing.id}', body); }
               if (mounted) { Navigator.pop(ctx); _loadData(); }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
