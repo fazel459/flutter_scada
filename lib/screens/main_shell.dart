@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/providers.dart';
@@ -23,7 +25,7 @@ class _MainShellState extends ConsumerState<MainShell> {
   void initState() {
     super.initState();
     // بارگذاری اولیه
-    ref.read(pagesProvider.notifier).loadPages();
+    // ref.read(pagesProvider.notifier).loadPages();
   }
 
   @override
