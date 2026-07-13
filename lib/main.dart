@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_scada/screens/main_shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/providers.dart';
 import 'screens/auth_screen.dart';
@@ -85,7 +86,7 @@ class _MyAppState extends ConsumerState<MyApp> {
       ),
       home: !authState.isAuthenticated
           ? const AuthScreen()
-          : const PagesScreen(),
+          : const MainShell(),
     );
   }
 }

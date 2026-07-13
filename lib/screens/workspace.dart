@@ -1367,63 +1367,134 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     }
   }
 
-  ScadaWidget _createWidget(String id, WidgetType type, double x, double y) {
-    final Map<WidgetType, Map<String, double>> sizes = {
-      WidgetType.gauge: {'w': 200, 'h': 200},
-      WidgetType.verticalTank: {'w': 120, 'h': 250},
-      WidgetType.horizontalTank: {'w': 250, 'h': 120},
-      WidgetType.temperature: {'w': 80, 'h': 220},
-      WidgetType.pressure: {'w': 200, 'h': 200},
-      WidgetType.led: {'w': 60, 'h': 60},
-      WidgetType.ledDual: {'w': 70, 'h': 80},
-      WidgetType.switchWidget: {'w': 100, 'h': 60},
-      WidgetType.graph: {'w': 400, 'h': 250},
-      WidgetType.chart: {'w': 400, 'h': 250},
-      WidgetType.fan: {'w': 150, 'h': 150},
-      WidgetType.motor: {'w': 160, 'h': 100},
-      WidgetType.gateValve: {'w': 100, 'h': 100},
-      WidgetType.controlValve: {'w': 100, 'h': 100},
-      WidgetType.digitalDisplay: {'w': 200, 'h': 80},
-      WidgetType.textDisplay: {'w': 200, 'h': 60},
-      WidgetType.verticalBar: {'w': 60, 'h': 200},
-      WidgetType.horizontalBar: {'w': 200, 'h': 60},
-      WidgetType.relay: {'w': 80, 'h': 80},
-      WidgetType.slider: {'w': 200, 'h': 60},
-      WidgetType.statusIndicator: {'w': 120, 'h': 120},
-      WidgetType.level: {'w': 80, 'h': 200},
-      WidgetType.staticLabel: {'w': 160, 'h': 40},
-      WidgetType.staticImage: {'w': 200, 'h': 150},
-      WidgetType.staticShape: {'w': 100, 'h': 100},
-      WidgetType.staticPipe: {'w': 200, 'h': 40},
-      WidgetType.staticPanel: {'w': 300, 'h': 200},
-      WidgetType.staticIcon: {'w': 60, 'h': 60},
-      WidgetType.staticLine: {'w': 200, 'h': 10},
-      WidgetType.staticArrow: {'w': 120, 'h': 40},
-      WidgetType.calculated: {'w': 200, 'h': 100},
-      WidgetType.trendChart: {'w': 350, 'h': 200},
-      WidgetType.spcChart: {'w': 400, 'h': 250},
-      WidgetType.animatedPath: {'w': 250, 'h': 50},
-      WidgetType.dataTable: {'w': 400, 'h': 250},
-    };
+ScadaWidget _createWidget(String id, WidgetType type, double x, double y) {
+  final Map<WidgetType, Map<String, double>> sizes = {
+    WidgetType.gauge: {'w': 200, 'h': 200},
+    WidgetType.verticalTank: {'w': 120, 'h': 250},
+    WidgetType.horizontalTank: {'w': 250, 'h': 120},
+    WidgetType.temperature: {'w': 80, 'h': 220},
+    WidgetType.pressure: {'w': 200, 'h': 200},
+    WidgetType.led: {'w': 60, 'h': 60},
+    WidgetType.ledDual: {'w': 70, 'h': 80},
+    WidgetType.switchWidget: {'w': 100, 'h': 60},
+    WidgetType.graph: {'w': 400, 'h': 250},
+    WidgetType.chart: {'w': 400, 'h': 250},
+    WidgetType.fan: {'w': 150, 'h': 150},
+    WidgetType.motor: {'w': 160, 'h': 100},
+    WidgetType.gateValve: {'w': 100, 'h': 100},
+    WidgetType.controlValve: {'w': 100, 'h': 100},
+    WidgetType.digitalDisplay: {'w': 200, 'h': 80},
+    WidgetType.textDisplay: {'w': 200, 'h': 60},
+    WidgetType.verticalBar: {'w': 60, 'h': 200},
+    WidgetType.horizontalBar: {'w': 200, 'h': 60},
+    WidgetType.relay: {'w': 80, 'h': 80},
+    WidgetType.slider: {'w': 200, 'h': 60},
+    WidgetType.statusIndicator: {'w': 120, 'h': 120},
+    WidgetType.level: {'w': 80, 'h': 200},
+    WidgetType.staticLabel: {'w': 160, 'h': 40},
+    WidgetType.staticImage: {'w': 200, 'h': 150},
+    WidgetType.staticShape: {'w': 100, 'h': 100},
+    WidgetType.staticPipe: {'w': 200, 'h': 40},
+    WidgetType.staticPanel: {'w': 300, 'h': 200},
+    WidgetType.staticIcon: {'w': 60, 'h': 60},
+    WidgetType.staticLine: {'w': 200, 'h': 10},
+    WidgetType.staticArrow: {'w': 120, 'h': 40},
+    WidgetType.calculated: {'w': 200, 'h': 100},
+    WidgetType.trendChart: {'w': 350, 'h': 200},
+    WidgetType.spcChart: {'w': 400, 'h': 250},
+    WidgetType.animatedPath: {'w': 250, 'h': 50},
+    WidgetType.dataTable: {'w': 400, 'h': 250},
+  };
+  final size = sizes[type]!;
+  final unit = type == WidgetType.temperature
+      ? '°C'
+      : type == WidgetType.pressure
+          ? 'kPa'
+          : '';
+  // ✅ مقدار اولیه برای پیش‌نمایش در حالت طراحی
+  final double initialValue = _getPreviewValue(type);
+  final bool initialBool = _getPreviewBool(type);
+  return ScadaWidget(
+    id: id,
+    type: type,
+    label: type.label,
+    x: x,
+    y: y,
+    width: size['w']!,
+    height: size['h']!,
+    unit: unit,
+    value: initialValue,     // ✅ مقدار اولیه ≠ 0
+    boolValue: initialBool,  // ✅ حالت اولیه
+  );
+}
 
-    final size = sizes[type]!;
-    final unit = type == WidgetType.temperature
-        ? '°C'
-        : type == WidgetType.pressure
-            ? 'kPa'
-            : '';
-
-    return ScadaWidget(
-      id: id,
-      type: type,
-      label: type.label,
-      x: x,
-      y: y,
-      width: size['w']!,
-      height: size['h']!,
-      unit: unit,
-    );
+double _getPreviewValue(WidgetType type) {
+  switch (type) {
+    // Gauges & displays: 50% مقدار
+    case WidgetType.gauge:
+    case WidgetType.pressure:
+    case WidgetType.digitalDisplay:
+    case WidgetType.slider:
+    case WidgetType.statusIndicator:
+    case WidgetType.calculated:
+      return 50;
+    // Tanks & bars: 65%
+    case WidgetType.verticalTank:
+    case WidgetType.horizontalTank:
+    case WidgetType.verticalBar:
+    case WidgetType.horizontalBar:
+    case WidgetType.level:
+      return 65;
+    // Temperature: مقدار واقعی
+    case WidgetType.temperature:
+      return 45;
+    // Fan/Motor: RPM
+    case WidgetType.fan:
+      return 1500;
+    case WidgetType.motor:
+      return 1;
+    // Valves: باز
+    case WidgetType.gateValve:
+    case WidgetType.controlValve:
+      return 100;
+    // Switches/LEDs/Relays: روشن
+    case WidgetType.switchWidget:
+    case WidgetType.led:
+    case WidgetType.ledDual:
+    case WidgetType.relay:
+      return 1;
+    // Text displays
+    case WidgetType.textDisplay:
+      return 42;
+    // Charts: dummy
+    case WidgetType.graph:
+    case WidgetType.chart:
+    case WidgetType.trendChart:
+    case WidgetType.spcChart:
+      return 50;
+    // Animated path
+    case WidgetType.animatedPath:
+      return 1;
+    // Static widgets: بدون مقدار
+    default:
+      return 0;
   }
+}
+// ✅ تابع جدید — حالت bool اولیه
+bool _getPreviewBool(WidgetType type) {
+  switch (type) {
+    case WidgetType.switchWidget:
+    case WidgetType.led:
+    case WidgetType.ledDual:
+    case WidgetType.relay:
+    case WidgetType.motor:
+    case WidgetType.fan:
+    case WidgetType.animatedPath:
+      return true;
+    default:
+      return false;
+  }
+}
 
   void _copyWidget(WidgetRef ref) {
     final id = ref.read(selectedWidgetIdProvider);
@@ -1507,17 +1578,12 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
 
   void _goBack(BuildContext context, WidgetRef ref) {
     _dataService.stop();
-    // Refresh pages list
-    final user = ref.read(authProvider).user!;
-    if (user.role.canDesign) {
-      ref.read(pagesProvider.notifier).loadPages();
-    }
+    ref.read(pagesProvider.notifier).loadPages();
     ref.read(designModeProvider.notifier).state = false;
     ref.read(selectedWidgetIdProvider.notifier).state = null;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const PagesScreen()),
-    );
+
+    // ✅ فقط pop — برگشت به MainShell
+    Navigator.pop(context);
   }
 
   String _timeString(DateTime dt) {
