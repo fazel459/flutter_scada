@@ -453,8 +453,8 @@ class HorizontalTankPainter extends CustomPainter {
             Offset(tankX, tankY + tankH),
             [
               color.withOpacity(0.5),
-              color.withOpacity(0.9),
-              color.withOpacity(0.5),
+              color.withValues(alpha: 0.9),
+              color.withValues(alpha: 0.5),
             ],
           ),
       );
@@ -511,7 +511,7 @@ class HorizontalTankPainter extends CustomPainter {
 class TemperaturePainter extends CustomPainter {
   final ScadaWidget widget;
   final double blinkOpacity;
-  TemperaturePainter(this.widget, {this.blinkOpacity = 1.0});
+  TemperaturePainter(this.widget, {this.blinkOpacity = 0.5});
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
@@ -559,14 +559,15 @@ class TemperaturePainter extends CustomPainter {
         const Radius.circular(8),
       ),
       Paint()
-        ..shader = ui.Gradient.linear(
-          Offset(cx - tubeW / 2, tubeY),
-          Offset(cx + tubeW / 2, tubeY),
+  ..shader = ui.Gradient.radial(
+          Offset(cx - 5, bulbCY - 4),
+          bulbR,
           [
-            const Color(0xFF2A3545), // ✅ روشن‌تر
-            const Color(0xFF3A4858), // ✅ روشن‌تر
-            const Color(0xFF2A3545),
+            color.withOpacity(0.9),
+            color,
+            color.withOpacity(0.6),
           ],
+          [0.0, 0.5, 1.0],
         ),
     );
     // ✅ Tube border — مرئی

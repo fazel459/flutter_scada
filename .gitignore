@@ -1,6 +1,7 @@
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+build/1e57b4283dd269ba75191ea2755bf355.cache.dill.track.dill
 build/*
 .idea/
 .vscode
