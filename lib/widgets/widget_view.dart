@@ -14,8 +14,7 @@ class ScadaWidgetView extends ConsumerStatefulWidget {
   final VoidCallback? onSelect;
   final ValueChanged<Offset>? onDrag;
 
-  // ✅ حذف شد: onResizeStart, onResizeUpdate, onResizeEnd
-  // دستگیره‌ها الان در workspace مدیریت می‌شوند
+
 
   const ScadaWidgetView({
     super.key,
@@ -137,7 +136,7 @@ class _ScadaWidgetViewState extends ConsumerState<ScadaWidgetView>
             : (widget.designMode
                 ? BoxDecoration(
                     border: Border.all(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withValues(alpha: 0.2),
                       width: 1,
                       style: BorderStyle.solid,
                     ),
@@ -166,8 +165,7 @@ class _ScadaWidgetViewState extends ConsumerState<ScadaWidgetView>
                 ),
               ),
             ),
-            // ✅ حذف شد: _buildResizeHandles()
-            // دستگیره‌ها الان در workspace.dart مدیریت می‌شوند
+
           ],
         ),
       ),

@@ -5,7 +5,6 @@ import 'package:flutter_scada/screens/main_shell.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/providers.dart';
 import 'screens/auth_screen.dart';
-import 'screens/pages_screen.dart';
 import 'models/user_model.dart';
 
 void main() async {

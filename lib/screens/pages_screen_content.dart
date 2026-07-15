@@ -6,14 +6,8 @@ import 'package:flutter_scada/screens/workspace.dart';
 import 'package:flutter_scada/utils/constants.dart';
 
 
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/providers.dart';
-import '../models/enums.dart';
 import '../models/user_model.dart';
 import '../models/page_model.dart';
-import '../utils/constants.dart';
-import 'workspace.dart';
 
 class PagesScreenContent extends ConsumerStatefulWidget {
   const PagesScreenContent({super.key});

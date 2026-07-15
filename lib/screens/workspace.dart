@@ -7,7 +7,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/models/alarm_model.dart';
 import 'package:flutter_scada/models/page_model.dart';
 import 'package:flutter_scada/models/user_model.dart';
-import 'package:flutter_scada/screens/pages_screen.dart';
 import 'package:uuid/uuid.dart';
 import '../providers/providers.dart';
 import '../models/widget_model.dart';
@@ -948,7 +947,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
             top: handleOverflow,
             width: widget.width,
             height: widget.height,
-            child: Listener(
+            child: Listener(  //response to common pointer events
               behavior: HitTestBehavior.opaque,
               onPointerDown: (event) {
                 if (!designMode || selectedPaletteType != null) return;
@@ -1064,6 +1063,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                           borderRadius: BorderRadius.circular(4),
                         )
                       : null,
+                      //ساخت ویجت
                   child: ScadaWidgetView(
                     widget: widget,
                     designMode: designMode,
@@ -1553,10 +1553,11 @@ bool _getPreviewBool(WidgetType type) {
 
   void _pushUndo(WidgetRef ref) {
     final p = ref.read(currentPageProvider);
-    if (p != null)
+    if (p != null) {
       ref
           .read(undoRedoProvider.notifier)
           .pushState(p.widgets.map((w) => w.toJson()).toList());
+    }
   }
 
   Future<void> _savePage(WidgetRef ref) async {
