@@ -2,7 +2,7 @@
 .flutter-plugins
 .flutter-plugins-dependencies
 build/*.*
-build/*
+build/
 .idea/
 .vscode
 test/
