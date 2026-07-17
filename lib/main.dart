@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/screens/main_shell.dart';
+import 'package:flutter_scada/screens/report_screen.dart';
+import 'package:flutter_scada/utils/persian-datetime-picker/lib/persian_datetime_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/providers.dart';
 import 'screens/auth_screen.dart';
@@ -77,12 +79,24 @@ class _MyAppState extends ConsumerState<MyApp> {
     return MaterialApp(
       title: 'SCADA System',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('fa', 'IR'),
+      supportedLocales: const [
+        Locale("fa", "IR"),
+        Locale("en", "US"),
+      ],
+      localizationsDelegates: const [
+        
+        PersianMaterialLocalizations.delegate,
+        PersianCupertinoLocalizations.delegate,
+
+      ],
       theme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
       ),
+      // home :const ReportScreen(),
       home: !authState.isAuthenticated
           ? const AuthScreen()
           : const MainShell(),
