@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/screens/main_shell.dart';
-import 'package:flutter_scada/screens/report_screen.dart';
 import 'package:flutter_scada/utils/persian-datetime-picker/lib/persian_datetime_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/providers.dart';

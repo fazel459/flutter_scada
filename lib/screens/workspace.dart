@@ -378,7 +378,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                               : null,
                           boxShadow: [
                             BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
+                                color: Colors.black.withValues(alpha: 0.4),
                                 blurRadius: 8),
                           ],
                         ),
@@ -663,10 +663,12 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
     final chLines = <double>[];
 
     // Canvas center
-    if ((dragCx - canvasW / 2).abs() < _guideSnapThreshold)
+    if ((dragCx - canvasW / 2).abs() < _guideSnapThreshold) {
       cvLines.add(canvasW / 2);
-    if ((dragCy - canvasH / 2).abs() < _guideSnapThreshold)
+    }
+    if ((dragCy - canvasH / 2).abs() < _guideSnapThreshold) {
       chLines.add(canvasH / 2);
+    }
 
     for (final other in page.widgets) {
       if (other.id == dragging.id) continue;
@@ -802,8 +804,8 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                         border: designMode
                             ? Border.all(
                                 color: selectedPaletteType != null
-                                    ? Colors.blue.withOpacity(0.4)
-                                    : Colors.blue.withOpacity(0.2),
+                                    ? Colors.blue.withValues(alpha: 0.4)
+                                    : Colors.blue.withValues(alpha: 0.2),
                                 width: selectedPaletteType != null ? 2 : 1,
                               )
                             : null,
@@ -846,11 +848,11 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.85),
+                    color: Colors.blue.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black.withOpacity(0.3), blurRadius: 8),
+                          color: Colors.black.withValues(alpha: 0.3), blurRadius: 8),
                     ],
                   ),
                   child: Row(
@@ -873,7 +875,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.close,
@@ -1092,7 +1094,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                   border: Border.all(color: const Color(0xFF475569)),
                   boxShadow: [
                     BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
+                        color: Colors.black.withValues(alpha: 0.4),
                         blurRadius: 8,
                         offset: const Offset(0, 2)),
                   ],
@@ -1230,7 +1232,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                   border: Border.all(color: Colors.white, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       blurRadius: 4,
                       spreadRadius: 1,
                     ),
@@ -1239,7 +1241,7 @@ class _ScadaWorkspaceState extends ConsumerState<ScadaWorkspace> {
                 child: Icon(
                   _handleIcon(id),
                   size: 10,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
             ),
@@ -1638,11 +1640,11 @@ class _SmartGuidesPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final dashEdge = Paint()
-      ..color = const Color(0xFFEF4444).withOpacity(0.4)
+      ..color = const Color(0xFFEF4444).withValues(alpha: 0.4)
       ..strokeWidth = 0.5;
 
     final dashCenter = Paint()
-      ..color = const Color(0xFF22C55E).withOpacity(0.4)
+      ..color = const Color(0xFF22C55E).withValues(alpha: 0.4)
       ..strokeWidth = 0.5;
 
     for (final x in guides.verticalLines) {
@@ -1670,7 +1672,7 @@ class _SmartGuidesPainter extends CustomPainter {
     final tp = TextPainter(
       text: TextSpan(
           text: text,
-          style: TextStyle(fontSize: 8, color: color.withOpacity(0.7))),
+          style: TextStyle(fontSize: 8, color: color.withValues(alpha: 0.7))),
       textDirection: TextDirection.ltr,
     );
     tp.layout();
@@ -1688,7 +1690,7 @@ class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.06)
+      ..color = Colors.white.withValues(alpha: 0.06)
       ..strokeWidth = 0.5;
 
     for (double x = 0; x < size.width; x += gridSize) {
@@ -1702,3 +1704,4 @@ class _GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+

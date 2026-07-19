@@ -102,7 +102,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                  Text('System Overview', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                  Text('System Overview', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
                 ],
               ),
               const Spacer(),
@@ -110,7 +110,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 onPressed: _loadStats,
                 icon: const Icon(Icons.refresh, size: 16),
                 label: const Text('Refresh', style: TextStyle(fontSize: 12)),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.withOpacity(0.2)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.withValues(alpha: 0.2)),
               ),
             ],
           ),
@@ -164,9 +164,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       width: 180,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,7 +174,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           Text(icon, style: const TextStyle(fontSize: 24)),
           const SizedBox(height: 8),
           Text(value, style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold)),
-          Text(label, style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12)),
+          Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12)),
         ],
       ),
     );
@@ -253,3 +253,4 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 }
+

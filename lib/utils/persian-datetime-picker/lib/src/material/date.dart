@@ -513,7 +513,7 @@ String? jalaliStringToGregorianString(
     // Assuming the input format is "yyyy/mm/dd"
     final List<String> parts = jalaliDateString.split(seprator);
     if (parts.length != 3) {
-      throw FormatException("Invalid Jalali date format");
+      throw const FormatException("Invalid Jalali date format");
     }
 
     final int year = int.parse(parts[0]);

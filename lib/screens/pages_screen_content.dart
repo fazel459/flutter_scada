@@ -129,7 +129,7 @@ class _PagesScreenContentState extends ConsumerState<PagesScreenContent> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.dashboard, size: 64,
-                color: Colors.white.withOpacity(0.2)),
+                color: Colors.white.withValues(alpha: 0.2)),
             const SizedBox(height: 16),
             const Text('No pages yet',
                 style: TextStyle(fontSize: 18, color: Colors.white54)),
@@ -272,9 +272,9 @@ class _PageCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Stack(
             children: [
@@ -308,7 +308,7 @@ class _PageCard extends StatelessWidget {
                         if (page.description.isNotEmpty)
                           Text(page.description,
                               style: TextStyle(
-                                  color: Colors.white.withOpacity(0.5),
+                                  color: Colors.white.withValues(alpha: 0.5),
                                   fontSize: 12),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis),
@@ -334,3 +334,4 @@ class _PageCard extends StatelessWidget {
     );
   }
 }
+

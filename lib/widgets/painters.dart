@@ -23,8 +23,8 @@ class GaugePainter extends CustomPainter {
     // Background
     _drawBackground(canvas, size, widget);
 
-    final startAngle = -225.0;
-    final endAngle = 45.0;
+    const startAngle = -225.0;
+    const endAngle = 45.0;
     final v = widget.scaledValue;
     final pct = _clamp((v - widget.minValue) / (widget.maxValue - widget.minValue));
     final valueAngle = startAngle + pct * (endAngle - startAngle);
@@ -49,7 +49,7 @@ class GaugePainter extends CustomPainter {
     
     // Glow effect
     final glowPaint = Paint()
-      ..color = color.withOpacity(0.4)
+      ..color = color.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 20
       ..strokeCap = StrokeCap.round
@@ -61,7 +61,7 @@ class GaugePainter extends CustomPainter {
     final valuePaint = Paint()
       ..shader = ui.Gradient.sweep(
         Offset(cx, cy),
-        [color.withOpacity(0.6), color, color],
+        [color.withValues(alpha: 0.6), color, color],
         [0.0, 0.5, 1.0],
         TileMode.clamp,
         _degToRad(startAngle),
@@ -83,7 +83,7 @@ class GaugePainter extends CustomPainter {
       Offset(cx + 2, cy + 2),
       Offset(nx + 2, ny + 2),
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..strokeWidth = 4
         ..strokeCap = StrokeCap.round,
     );
@@ -103,7 +103,7 @@ class GaugePainter extends CustomPainter {
       ..shader = ui.Gradient.radial(
         Offset(cx - 2, cy - 2),
         10,
-        [Colors.white.withOpacity(0.3), color, color.withOpacity(0.8)],
+        [Colors.white.withValues(alpha: 0.3), color, color.withValues(alpha: 0.8)],
         [0.0, 0.3, 1.0],
       );
     canvas.drawCircle(Offset(cx, cy), 8, centerGradient);
@@ -112,7 +112,7 @@ class GaugePainter extends CustomPainter {
     canvas.drawCircle(
       Offset(cx - 2, cy - 2),
       3,
-      Paint()..color = Colors.white.withOpacity(0.5),
+      Paint()..color = Colors.white.withValues(alpha: 0.5),
     );
 
     // Value text with shadow
@@ -122,7 +122,7 @@ class GaugePainter extends CustomPainter {
     // Unit
     if (widget.unit.isNotEmpty) {
       _drawText(canvas, cx, cy + 46, widget.unit,
-          12, colorFromHex(widget.textColor).withOpacity(0.7), align: TextAlign.center);
+          12, colorFromHex(widget.textColor).withValues(alpha: 0.7), align: TextAlign.center);
     }
 
     // Label with glass effect
@@ -130,9 +130,9 @@ class GaugePainter extends CustomPainter {
       Rect.fromCenter(center: Offset(cx, size.height - 16), width: size.width - 20, height: 20),
       const Radius.circular(10),
     );
-    canvas.drawRRect(labelBg, Paint()..color = Colors.black.withOpacity(0.2));
+    canvas.drawRRect(labelBg, Paint()..color = Colors.black.withValues(alpha: 0.2));
     _drawText(canvas, cx, size.height - 12, widget.label,
-        10, colorFromHex(widget.textColor).withOpacity(0.8), align: TextAlign.center);
+        10, colorFromHex(widget.textColor).withValues(alpha: 0.8), align: TextAlign.center);
     
     // Scale marks
     for (int i = 0; i <= 10; i++) {
@@ -148,7 +148,7 @@ class GaugePainter extends CustomPainter {
         Offset(x1, y1),
         Offset(x2, y2),
         Paint()
-          ..color = Colors.white.withOpacity(i % 5 == 0 ? 0.6 : 0.3)
+          ..color = Colors.white.withValues(alpha: i % 5 == 0 ? 0.6 : 0.3)
           ..strokeWidth = i % 5 == 0 ? 2 : 1,
       );
     }
@@ -182,9 +182,9 @@ class VerticalTankPainter extends CustomPainter {
     // Background
     _drawBackground(canvas, size, widget);
 
-    final tankX = 20.0;
+    const tankX = 20.0;
     final tankW = size.width - 40;
-    final tankY = 30.0;
+    const tankY = 30.0;
     final tankH = size.height - 70;
 
     // Tank body with 3D effect
@@ -197,7 +197,7 @@ class VerticalTankPainter extends CustomPainter {
     canvas.drawRRect(
       tankRect.shift(const Offset(3, 3)),
       Paint()
-        ..color = Colors.black.withOpacity(0.4)
+        ..color = Colors.black.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
     
@@ -206,7 +206,7 @@ class VerticalTankPainter extends CustomPainter {
       tankRect,
       Paint()
         ..shader = ui.Gradient.linear(
-          Offset(tankX, tankY),
+          const Offset(tankX, tankY),
           Offset(tankX + tankW, tankY),
            [const Color(0xFF1A2535), const Color(0xFF2A3848), const Color(0xFF1A2535)],
           [0.0, 0.5, 1.0],
@@ -218,7 +218,7 @@ class VerticalTankPainter extends CustomPainter {
       tankRect,
       Paint()
         ..shader = ui.Gradient.linear(
-          Offset(tankX, tankY),
+          const Offset(tankX, tankY),
           Offset(tankX + tankW, tankY),
           [const Color(0xFF4A5868), const Color(0xFF6A7A8A), const Color(0xFF4A5868)],
           [0.0, 0.5, 1.0],
@@ -242,7 +242,7 @@ class VerticalTankPainter extends CustomPainter {
           ..shader = ui.Gradient.linear(
             Offset(tankX, tankY + tankH - fillH),
             Offset(tankX + tankW, tankY + tankH - fillH),
-            [color.withOpacity(0.6), color, color.withOpacity(0.6)],
+            [color.withValues(alpha: 0.6), color, color.withValues(alpha: 0.6)],
             [0.0, 0.5, 1.0],
           ),
       );
@@ -252,7 +252,7 @@ class VerticalTankPainter extends CustomPainter {
         Offset(tankX + 8, tankY + tankH - fillH + 6),
         Offset(tankX + tankW - 8, tankY + tankH - fillH + 6),
         Paint()
-          ..color = Colors.white.withOpacity(0.4)
+          ..color = Colors.white.withValues(alpha: 0.4)
           ..strokeWidth = 2
           ..strokeCap = StrokeCap.round,
       );
@@ -266,7 +266,7 @@ class VerticalTankPainter extends CustomPainter {
         canvas.drawCircle(
           Offset(bx, by),
           br,
-          Paint()..color = Colors.white.withOpacity(0.2),
+          Paint()..color = Colors.white.withValues(alpha: 0.2),
         );
       }
     }
@@ -278,12 +278,12 @@ class VerticalTankPainter extends CustomPainter {
         Offset(tankX + 5, y),
         Offset(tankX + tankW - 5, y),
         Paint()
-          ..color = Colors.white.withOpacity(0.15)
+          ..color = Colors.white.withValues(alpha: 0.15)
           ..strokeWidth = 1,
       );
       // Level label
       _drawText(canvas, tankX + tankW + 5, y + 3, '${(l * 100).toInt()}%',
-          8, Colors.white.withOpacity(0.4), align: TextAlign.left);
+          8, Colors.white.withValues(alpha: 0.4), align: TextAlign.left);
     }
 
     // Glass reflection
@@ -297,9 +297,9 @@ class VerticalTankPainter extends CustomPainter {
       reflectionPath,
       Paint()
         ..shader = ui.Gradient.linear(
-          Offset(tankX, tankY),
-          Offset(tankX + 15, tankY),
-          [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.02)],
+          const Offset(tankX, tankY),
+          const Offset(tankX + 15, tankY),
+          [Colors.white.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.02)],
         ),
     );
 
@@ -309,7 +309,7 @@ class VerticalTankPainter extends CustomPainter {
 
     // Label
     _drawText(canvas, cx, size.height - 10, widget.label,
-        10, colorFromHex(widget.textColor).withOpacity(0.7), align: TextAlign.center);
+        10, colorFromHex(widget.textColor).withValues(alpha: 0.7), align: TextAlign.center);
   }
 
   Color? _getAlarmColor() {
@@ -343,10 +343,10 @@ class HorizontalTankPainter extends CustomPainter {
     
     _drawBackground(canvas, size, widget);
     
-    final tankX = 15.0;
+    const tankX = 15.0;
     // 2. هم‌ترازی پیکسلی ابعاد تانک
     final tankW = (size.width - 30).roundToDouble();
-    final tankY = 20.0;
+    const tankY = 20.0;
     final tankH = (size.height - 55).roundToDouble(); // بسیار مهم برای بیضی‌ها
     
     final fillW = tankW * pct;
@@ -357,7 +357,7 @@ class HorizontalTankPainter extends CustomPainter {
       Paint()
         ..filterQuality = ui.FilterQuality.none // جلوگیری از ماتی گرادیانت
         ..shader = ui.Gradient.linear(
-          Offset(tankX, tankY),
+          const Offset(tankX, tankY),
           Offset(tankX + 24, tankY + tankH),
           [const Color(0xFF2A3545), const Color(0xFF3A4858), const Color(0xFF2A3545)],[0.0, 0.5, 1.0],
         ),
@@ -396,7 +396,7 @@ class HorizontalTankPainter extends CustomPainter {
       Paint()
         ..filterQuality = ui.FilterQuality.none
         ..shader = ui.Gradient.linear(
-          Offset(tankX, tankY),
+          const Offset(tankX, tankY),
           Offset(tankX, tankY + tankH),
           [const Color(0xFF2A3545), const Color(0xFF1A2535), const Color(0xFF2A3545)],[0.0, 0.6, 0.9],
         ),
@@ -417,7 +417,7 @@ class HorizontalTankPainter extends CustomPainter {
         Offset(lineX, tankY + 2),
         Offset(lineX, tankY + tankH - 2),
         Paint()
-          ..color = const Color(0xFF4A5A6A).withOpacity(0.3)
+          ..color = const Color(0xFF4A5A6A).withValues(alpha: 0.3)
           ..strokeWidth = 1,
       );
     }
@@ -438,7 +438,7 @@ class HorizontalTankPainter extends CustomPainter {
       canvas.drawRect(
         fillRect,
         Paint()
-          ..color = color.withOpacity(0.2)
+          ..color = color.withValues(alpha: 0.2)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3), 
       );
       
@@ -448,9 +448,9 @@ class HorizontalTankPainter extends CustomPainter {
         Paint()
           ..filterQuality = ui.FilterQuality.none
           ..shader = ui.Gradient.linear(
-            Offset(tankX, tankY),
+            const Offset(tankX, tankY),
             Offset(tankX, tankY + tankH),
-            [color.withOpacity(0.5), color.withOpacity(0.9), color.withOpacity(0.5)],[0.0, 0.5, 1.0],
+            [color.withValues(alpha: 0.5), color.withValues(alpha: 0.9), color.withValues(alpha: 0.5)],[0.0, 0.5, 1.0],
           ),
       );
       
@@ -459,7 +459,7 @@ class HorizontalTankPainter extends CustomPainter {
         Offset(tankX + 14 + safeFillW - 4, tankY + 6),
         Offset(tankX + 14 + safeFillW - 4, tankY + tankH - 6),
         Paint()
-          ..color = Colors.white.withOpacity(0.3)
+          ..color = Colors.white.withValues(alpha: 0.3)
           ..strokeWidth = 2
           ..strokeCap = StrokeCap.round,
       );
@@ -472,12 +472,12 @@ class HorizontalTankPainter extends CustomPainter {
         Offset(markX, tankY + tankH + 2),
         Offset(markX, tankY + tankH + 8),
         Paint()
-          ..color = Colors.white.withOpacity(0.8)
+          ..color = Colors.white.withValues(alpha: 0.8)
           ..strokeWidth = 1,
       );
       final labelVal = widget.minValue + (widget.maxValue - widget.minValue) * ratio;
       _drawText(canvas, markX, tankY + tankH + 14, labelVal.toStringAsFixed(0),
-          8, colorFromHex(widget.textColor).withOpacity(0.8),
+          8, colorFromHex(widget.textColor).withValues(alpha: 0.8),
           align: TextAlign.center);
     }
 
@@ -485,7 +485,7 @@ class HorizontalTankPainter extends CustomPainter {
     _drawTextWithShadow(canvas, cx, cy + 5, '${v.toStringAsFixed(1)}${widget.unit}', 14, Colors.white, weight: FontWeight.bold);
     
     // Label
-    _drawText(canvas, cx, size.height - 8, widget.label, 10, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.center);
+    _drawText(canvas, cx, size.height - 8, widget.label, 10, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.center);
   }
 
   Color? _getAlarmColor() {
@@ -528,10 +528,10 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
     
     _drawBackground(canvas, size, widget);
     
-    final tubeW = 16.0;
+    const tubeW = 16.0;
     // 2. هم‌ترازی پیکسلی برای ارتفاع و موقعیت‌ها
     final tubeH = math.max(40.0, size.height - 90).roundToDouble();
-    final tubeY = 25.0;
+    const tubeY = 25.0;
     final bulbR = math.min(22.0, size.width / 2 - 8).roundToDouble(); 
     final bulbCY = math.min(tubeY + tubeH + 12, size.height - bulbR - 20).roundToDouble();
 
@@ -542,7 +542,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
         const Radius.circular(8),
       ),
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6), // کاهش بلور
     );
 
@@ -575,7 +575,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
         Rect.fromLTWH(cx - tubeW / 2 + 2, tubeY + 2, 4, tubeH - 4),
         const Radius.circular(6),
       ),
-      Paint()..color = Colors.white.withOpacity(0.15),
+      Paint()..color = Colors.white.withValues(alpha: 0.15),
     );
 
     // ✅ Mercury/Fill
@@ -590,7 +590,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
           const Radius.circular(10),
         ),
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3), // کاهش بلور
       );
 
@@ -608,7 +608,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
             [
               color.withValues(alpha: 0.7),
               color,
-              // color.withOpacity(0.7),
+              // color.withValues(alpha: 0.7),
             ],
           ),
       );
@@ -619,7 +619,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
       Offset(cx + 2, bulbCY + 3),
       bulbR,
       Paint()
-        ..color = Colors.black.withOpacity(0.4)
+        ..color = Colors.black.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2), // کاهش بلور
     );
 
@@ -633,9 +633,9 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
           Offset(cx - 5, bulbCY - 4),
           bulbR,
           [
-            color.withOpacity(0.9),
+            color.withValues(alpha: 0.9),
             color,
-            color.withOpacity(0.6),
+            color.withValues(alpha: 0.6),
           ],
           [0.0, 0.5, 1.0],
         ),
@@ -645,7 +645,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
     canvas.drawCircle(
       Offset(cx - 6, bulbCY - 6),
       6,
-      Paint()..color = Colors.white.withOpacity(0.4),
+      Paint()..color = Colors.white.withValues(alpha: 0.4),
     );
 
     // ✅ Bulb glow (کاهش بلور از 10 به 4)
@@ -653,7 +653,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
       Offset(cx, bulbCY),
       bulbR + 8,
       Paint()
-        ..color = color.withOpacity(0.2)
+        ..color = color.withValues(alpha: 0.2)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4), // کاهش بلور
     );
 
@@ -670,7 +670,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
     // ✅ اتصال لوله به حباب (با اعداد گرد شده خطای دید برطرف می‌شود)
     canvas.drawRect(
       Rect.fromLTWH(cx - tubeW / 2 + 3, tubeY + tubeH - 2, tubeW - 6, (bulbCY - tubeY - tubeH + 4).roundToDouble()),
-      Paint()..color = color.withOpacity(pct > 0 ? 0.8 : 0.2),
+      Paint()..color = color.withValues(alpha: pct > 0 ? 0.8 : 0.2),
     );
 
     // Scale marks
@@ -680,7 +680,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
         Offset(cx + tubeW / 2 + 4, y),
         Offset(cx + tubeW / 2 + 12, y),
         Paint()
-          ..color = Colors.white.withOpacity(0.5)
+          ..color = Colors.white.withValues(alpha: 0.5)
           ..strokeWidth = l == 0.5 ? 2 : 1,
       );
       final value = widget.minValue + (widget.maxValue - widget.minValue) * l;
@@ -690,7 +690,7 @@ class TemperaturePainter extends CustomPainter { final ScadaWidget widget;
           y + 3,
           value.toStringAsFixed(0),
           9,
-          colorFromHex(widget.textColor).withOpacity(0.6),
+          colorFromHex(widget.textColor).withValues(alpha: 0.6),
           align: TextAlign.left);
     }
 
@@ -738,7 +738,7 @@ class LedPainter extends CustomPainter {
         Offset(cx, cy),
         r + 15,
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 19),
       );
       
@@ -761,8 +761,8 @@ class LedPainter extends CustomPainter {
           Offset(cx - r * 0.3, cy - r * 0.3),
           r * 1.5,
           on
-              ? [Colors.white.withOpacity(0.8), color, color.withOpacity(0.6)]
-              : [color.withOpacity(0.4), color.withOpacity(0.2), color.withOpacity(0.1)],
+              ? [Colors.white.withValues(alpha: 0.8), color, color.withValues(alpha: 0.6)]
+              : [color.withValues(alpha: 0.4), color.withValues(alpha: 0.2), color.withValues(alpha: 0.1)],
           [0.0, 0.4, 1.0],
         ),
     );
@@ -772,12 +772,12 @@ class LedPainter extends CustomPainter {
       canvas.drawCircle(
         Offset(cx - r * 0.3, cy - r * 0.3),
         r * 0.3,
-        Paint()..color = Colors.white.withOpacity(0.6),
+        Paint()..color = Colors.white.withValues(alpha: 0.6),
       );
     }
 
     _drawText(canvas, cx, size.height - 8, widget.label,
-        9, colorFromHex(widget.textColor).withOpacity(0.7), align: TextAlign.center);
+        9, colorFromHex(widget.textColor).withValues(alpha: 0.7), align: TextAlign.center);
   }
 
   @override
@@ -842,7 +842,7 @@ class LedDualPainter extends CustomPainter {
         Offset(cx, cy),
         r + 18,
         Paint()
-          ..color = color.withOpacity(0.4 * opacity)
+          ..color = color.withValues(alpha: 0.4 * opacity)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
       );
       
@@ -851,7 +851,7 @@ class LedDualPainter extends CustomPainter {
         Offset(cx, cy),
         r + 8,
         Paint()
-          ..color = color.withOpacity(0.6 * opacity)
+          ..color = color.withValues(alpha: 0.6 * opacity)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
       );
     }
@@ -866,14 +866,14 @@ class LedDualPainter extends CustomPainter {
           r * 1.5,
           isOn
               ? [
-                  Colors.white.withOpacity(0.8 * opacity),
-                  color.withOpacity(opacity),
-                  color.withOpacity(0.6 * opacity)
+                  Colors.white.withValues(alpha: 0.8 * opacity),
+                  color.withValues(alpha: opacity),
+                  color.withValues(alpha: 0.6 * opacity)
                 ]
               : [
-                  color.withOpacity(0.4),
-                  color.withOpacity(0.2),
-                  color.withOpacity(0.1)
+                  color.withValues(alpha: 0.4),
+                  color.withValues(alpha: 0.2),
+                  color.withValues(alpha: 0.1)
                 ],
           [0.0, 0.4, 1.0],
         ),
@@ -884,7 +884,7 @@ class LedDualPainter extends CustomPainter {
       canvas.drawCircle(
         Offset(cx - r * 0.3, cy - r * 0.3),
         r * 0.3,
-        Paint()..color = Colors.white.withOpacity(0.6 * opacity),
+        Paint()..color = Colors.white.withValues(alpha: 0.6 * opacity),
       );
     }
 
@@ -895,19 +895,19 @@ class LedDualPainter extends CustomPainter {
       4,
       Paint()..color = input1Active 
           ? colorFromHex(config.input1Color) 
-          : Colors.grey.withOpacity(0.3),
+          : Colors.grey.withValues(alpha: 0.3),
     );
     // Input 2 indicator
     canvas.drawCircle(
       Offset(cx + 12, size.height - 14),
       4,
       Paint()..color = input2Active 
-          ? colorFromHex(config.input2Color).withOpacity(opacity) 
-          : Colors.grey.withOpacity(0.3),
+          ? colorFromHex(config.input2Color).withValues(alpha: opacity) 
+          : Colors.grey.withValues(alpha: 0.3),
     );
 
     _drawText(canvas, cx, size.height - 26, widget.label,
-        8, colorFromHex(widget.textColor).withOpacity(0.7), align: TextAlign.center);
+        8, colorFromHex(widget.textColor).withValues(alpha: 0.7), align: TextAlign.center);
   }
 
   @override
@@ -932,7 +932,7 @@ class SwitchPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(cx - 26, 14, 52, 28), const Radius.circular(14)),
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
 
@@ -944,7 +944,7 @@ class SwitchPainter extends CustomPainter {
           Offset(cx - 24, 12),
           Offset(cx - 24, 36),
           on
-              ? [color.withOpacity(0.8), color, color.withOpacity(0.9)]
+              ? [color.withValues(alpha: 0.8), color, color.withValues(alpha: 0.9)]
               : [const Color(0xFF4A5868), const Color(0xFF3A4858), const Color(0xFF4A5868)],[0.0, 0.5, 1.0],
         ),
     );
@@ -953,7 +953,7 @@ class SwitchPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(cx - 22, 14, 44, 20), const Radius.circular(10)),
       Paint()
-        ..color = Colors.black.withOpacity(0.2)
+        ..color = Colors.black.withValues(alpha: 0.2)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
@@ -963,7 +963,7 @@ class SwitchPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(cx - 28, 8, 56, 32), const Radius.circular(16)),
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       );
     }
@@ -974,7 +974,7 @@ class SwitchPainter extends CustomPainter {
       Offset(thumbX + 1, 25),
       10,
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
     );
 
@@ -1017,7 +1017,7 @@ class DigitalDisplayPainter extends CustomPainter {
       RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), const Radius.circular(8)),
       Paint()
         ..shader = ui.Gradient.linear(
-          Offset(0, 0),
+          const Offset(0, 0),
           Offset(0, size.height),
           [const Color(0xFF4A5868), const Color(0xFF2A3848)],
         ),
@@ -1033,7 +1033,7 @@ class DigitalDisplayPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(6, 6, size.width - 12, size.height - 12), const Radius.circular(3)),
       Paint()
-        ..color = color.withOpacity(0.05)
+        ..color = color.withValues(alpha: 0.05)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
     );
     
@@ -1042,7 +1042,7 @@ class DigitalDisplayPainter extends CustomPainter {
       canvas.drawLine(
         Offset(6, i.toDouble()),
         Offset(size.width - 6, i.toDouble()),
-        Paint()..color = Colors.white.withOpacity(0.02),
+        Paint()..color = Colors.white.withValues(alpha: 0.02),
       );
     }
 
@@ -1053,11 +1053,11 @@ class DigitalDisplayPainter extends CustomPainter {
     // Unit
     if (widget.unit.isNotEmpty) {
       _drawText(canvas, size.width - 12, cy, widget.unit,
-          11, color.withOpacity(0.7), align: TextAlign.right);
+          11, color.withValues(alpha: 0.7), align: TextAlign.right);
     }
 
     // Label
-    _drawText(canvas, 12, 14, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.5), align: TextAlign.left);
+    _drawText(canvas, 12, 14, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.5), align: TextAlign.left);
   }
 
   @override
@@ -1078,7 +1078,7 @@ class TextDisplayPainter extends CustomPainter {
     _drawBackground(canvas, size, widget);
 
     _drawText(canvas, 12, size.height / 2 - 8, widget.label, 10,
-        colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+        colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
     _drawTextWithShadow(canvas, 12, size.height / 2 + 12, '${v.toStringAsFixed(1)} ${widget.unit}',
         16, color, weight: FontWeight.bold, alignLeft: true);
   }
@@ -1104,8 +1104,8 @@ class VerticalBarPainter extends CustomPainter {
 
     final barW = size.width - 24;
     final barH = size.height - 45;
-    final bx = 12.0;
-    final by = 12.0;
+    const bx = 12.0;
+    const by = 12.0;
 
     // Bar background
     canvas.drawRRect(
@@ -1123,7 +1123,7 @@ class VerticalBarPainter extends CustomPainter {
           const Radius.circular(6),
         ),
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
       );
       
@@ -1131,9 +1131,9 @@ class VerticalBarPainter extends CustomPainter {
         RRect.fromRectAndRadius(Rect.fromLTWH(bx + 2, by + barH - fillH, barW - 4, fillH), const Radius.circular(3)),
         Paint()
           ..shader = ui.Gradient.linear(
-            Offset(bx, by),
+            const Offset(bx, by),
             Offset(bx + barW, by),
-            [color.withOpacity(0.9), color, color.withOpacity(0.6)],[0.0, 0.5, 1.0],
+            [color.withValues(alpha: 0.9), color, color.withValues(alpha: 0.6)],[0.0, 0.5, 1.0],
           ),
       );
     }
@@ -1164,7 +1164,7 @@ class HorizontalBarPainter extends CustomPainter {
     final barW = size.width - 20;
     final barH = size.height - 38;
 
-    _drawText(canvas, 10, 12, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 10, 12, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(10, 20, barW, barH), const Radius.circular(4)),
@@ -1177,7 +1177,7 @@ class HorizontalBarPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(10, 18, fillW + 4, barH + 4), const Radius.circular(5)),
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
       );
       
@@ -1185,9 +1185,9 @@ class HorizontalBarPainter extends CustomPainter {
         RRect.fromRectAndRadius(Rect.fromLTWH(12, 22, fillW, barH - 4), const Radius.circular(2)),
         Paint()
           ..shader = ui.Gradient.linear(
-            Offset(12, 20),
+            const Offset(12, 20),
             Offset(12, 20 + barH),
-            [color.withOpacity(0.7), color, color.withOpacity(0.7)],[0.0, 0.5, 1.0],
+            [color.withValues(alpha: 0.7), color, color.withValues(alpha: 0.7)],[0.0, 0.5, 1.0],
           ),
       );
     }
@@ -1222,7 +1222,7 @@ class FanPainter extends CustomPainter {
       Offset(cx + 2, cy + 3),
       r + 12,
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
     );
 
@@ -1255,7 +1255,7 @@ class FanPainter extends CustomPainter {
         Offset(cx, cy),
         r + 15,
         Paint()
-          ..color = color.withOpacity(0.2)
+          ..color = color.withValues(alpha: 0.2)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
       );
     }
@@ -1282,7 +1282,7 @@ class FanPainter extends CustomPainter {
       canvas.drawPath(
         bladePath.shift(const Offset(2, 2)),
         Paint()
-          ..color = Colors.black.withOpacity(0.3)
+          ..color = Colors.black.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
       );
       
@@ -1291,9 +1291,9 @@ class FanPainter extends CustomPainter {
         bladePath,
         Paint()
           ..shader = ui.Gradient.linear(
-            Offset(0, -10),
-            Offset(0, 10),
-            [color.withOpacity(0.9), color.withOpacity(0.6)],
+            const Offset(0, -10),
+            const Offset(0, 10),
+            [color.withValues(alpha: 0.9), color.withValues(alpha: 0.6)],
           ),
       );
       
@@ -1316,7 +1316,7 @@ class FanPainter extends CustomPainter {
     canvas.drawCircle(
       Offset(cx - 3, cy - 3),
       4,
-      Paint()..color = Colors.white.withOpacity(0.3),
+      Paint()..color = Colors.white.withValues(alpha: 0.3),
     );
 
     _drawText(canvas, cx, size.height - 10, '${widget.label} ${on ? 'ON' : 'OFF'}',
@@ -1336,8 +1336,8 @@ class MotorPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final on = widget.boolValue || widget.value > 0;
     final color = on ? colorFromHex(widget.activeColor) : colorFromHex(widget.inactiveColor);
-    final mx = 20.0;
-    final my = 18.0;
+    const mx = 20.0;
+    const my = 18.0;
     final mw = size.width - 50;
     final mh = size.height - 48;
 
@@ -1348,7 +1348,7 @@ class MotorPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(mx + 3, my + 3, mw, mh), const Radius.circular(10)),
       Paint()
-        ..color = Colors.black.withOpacity(0.4)
+        ..color = Colors.black.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
 
@@ -1357,7 +1357,7 @@ class MotorPainter extends CustomPainter {
       RRect.fromRectAndRadius(Rect.fromLTWH(mx, my, mw, mh), const Radius.circular(10)),
       Paint()
         ..shader = ui.Gradient.linear(
-          Offset(mx, my),
+          const Offset(mx, my),
           Offset(mx, my + mh),
           [const Color(0xFF4A5868), const Color(0xFF3A4858), const Color(0xFF2A3848)],[0.0, 0.5, 1.0],
         ),
@@ -1367,7 +1367,7 @@ class MotorPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(mx, my, mw, mh), const Radius.circular(10)),
       Paint()
-        ..color = color.withOpacity(0.8)
+        ..color = color.withValues(alpha: 0.8)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2,
     );
@@ -1424,15 +1424,15 @@ class MotorPainter extends CustomPainter {
     // Status LED
     if (on) {
       canvas.drawCircle(
-        Offset(mx + 15, my + 15),
+        const Offset(mx + 15, my + 15),
         8,
         Paint()
-          ..color = const Color(0xFF22C55E).withOpacity(0.4)
+          ..color = const Color(0xFF22C55E).withValues(alpha: 0.4)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
       );
     }
     canvas.drawCircle(
-      Offset(mx + 15, my + 15),
+      const Offset(mx + 15, my + 15),
       5,
       Paint()..color = on ? const Color(0xFF22C55E) : const Color(0xFF64748B),
     );
@@ -1475,7 +1475,7 @@ class GateValvePainter extends CustomPainter {
     canvas.drawRect(
       Rect.fromCenter(center: Offset(cx + 2, cy + 2), width: 28, height: 38),
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
 
@@ -1493,7 +1493,7 @@ class GateValvePainter extends CustomPainter {
         ..shader = ui.Gradient.linear(
           Offset(cx - 14, cy),
           Offset(cx + 14, cy),
-          [color.withOpacity(0.6), color, color.withOpacity(0.6)],[0.0, 0.5, 1.0],
+          [color.withValues(alpha: 0.6), color, color.withValues(alpha: 0.6)],[0.0, 0.5, 1.0],
         ),
     );
     canvas.drawPath(valvePath, Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = 2);
@@ -1503,7 +1503,7 @@ class GateValvePainter extends CustomPainter {
       canvas.drawPath(
         valvePath,
         Paint()
-          ..color = color.withOpacity(0.4)
+          ..color = color.withValues(alpha: 0.4)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
       );
     }
@@ -1584,7 +1584,7 @@ class ControlValvePainter extends CustomPainter {
       ..shader = ui.Gradient.linear(
         Offset(cx - 16, cy - 16),
         Offset(cx, cy),
-        [color.withOpacity(0.5), color.withOpacity(0.9)],[0.0, 0.5, 1.0],
+        [color.withValues(alpha: 0.5), color.withValues(alpha: 0.9)],[0.0, 0.5, 1.0],
       ));
 
     final rightPath = Path()
@@ -1597,7 +1597,7 @@ class ControlValvePainter extends CustomPainter {
       ..shader = ui.Gradient.linear(
         Offset(cx + 16, cy - 16),
         Offset(cx, cy),
-        [color.withOpacity(0.5), color.withOpacity(0.9)],
+        [color.withValues(alpha: 0.5), color.withValues(alpha: 0.9)],
       ));
 
     // Stem
@@ -1663,7 +1663,7 @@ class RelayPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(cx - 22, cy - 20, 44, 40), const Radius.circular(6)),
       Paint()
-        ..color = Colors.black.withOpacity(0.3)
+        ..color = Colors.black.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
     );
 
@@ -1692,7 +1692,7 @@ class RelayPainter extends CustomPainter {
       canvas.drawLine(Offset(cx - 12, cy), Offset(cx + 12, cy), contactPaint);
       // Spark effect
       canvas.drawCircle(Offset(cx, cy), 4, Paint()
-        ..color = Colors.yellow.withOpacity(0.6)
+        ..color = Colors.yellow.withValues(alpha: 0.6)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
     } else {
       canvas.drawLine(Offset(cx - 12, cy), Offset(cx + 12, cy - 12), contactPaint);
@@ -1701,7 +1701,7 @@ class RelayPainter extends CustomPainter {
     // Status LED
     if (on) {
       canvas.drawCircle(Offset(cx, cy - 13), 5, Paint()
-        ..color = const Color(0xFF22C55E).withOpacity(0.4)
+        ..color = const Color(0xFF22C55E).withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5));
     }
     canvas.drawCircle(Offset(cx, cy - 13), 3, Paint()..color = on ? const Color(0xFF22C55E) : const Color(0xFF64748B));
@@ -1724,13 +1724,13 @@ class SliderPainter extends CustomPainter {
     final v = widget.scaledValue;
     final pct = _clamp((v - widget.minValue) / (widget.maxValue - widget.minValue));
     final trackY = size.height / 2;
-    final trackX = 15.0;
+    const trackX = 15.0;
     final trackW = size.width - 30;
     final color = colorFromHex(widget.primaryColor);
 
     _drawBackground(canvas, size, widget);
 
-    _drawText(canvas, 10, 12, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 10, 12, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     // Track background
     canvas.drawRRect(
@@ -1744,7 +1744,7 @@ class SliderPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(trackX - 2, trackY - 6, fillW + 4, 12), const Radius.circular(6)),
         Paint()
-          ..color = color.withOpacity(0.3)
+          ..color = color.withValues(alpha: 0.3)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
       );
       canvas.drawRRect(
@@ -1753,7 +1753,7 @@ class SliderPainter extends CustomPainter {
           ..shader = ui.Gradient.linear(
             Offset(trackX, trackY - 4),
             Offset(trackX, trackY + 4),
-            [color.withOpacity(0.8), color],
+            [color.withValues(alpha: 0.8), color],
           ),
       );
     }
@@ -1761,13 +1761,13 @@ class SliderPainter extends CustomPainter {
     // Thumb
     final thumbX = trackX + trackW * pct;
     canvas.drawCircle(Offset(thumbX, trackY), 12, Paint()
-      ..color = Colors.black.withOpacity(0.3)
+      ..color = Colors.black.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
     canvas.drawCircle(Offset(thumbX, trackY), 10, Paint()
       ..shader = ui.Gradient.radial(
         Offset(thumbX - 3, trackY - 3),
         12,
-        [Colors.white, color, color.withOpacity(0.8)],
+        [Colors.white, color, color.withValues(alpha: 0.8)],
         [0.0, 0.5, 1.0],
       ));
 
@@ -1806,7 +1806,7 @@ class StatusIndicatorPainter extends CustomPainter {
 
     // Glow
     canvas.drawCircle(Offset(cx, cy), r + 12, Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
 
     // Main indicator with gradient
@@ -1814,18 +1814,18 @@ class StatusIndicatorPainter extends CustomPainter {
       ..shader = ui.Gradient.radial(
         Offset(cx - r * 0.3, cy - r * 0.3),
         r * 1.5,
-        [Colors.white.withOpacity(0.5), color, color.withOpacity(0.7)],
+        [Colors.white.withValues(alpha: 0.5), color, color.withValues(alpha: 0.7)],
         [0.0, 0.4, 1.0],
       ));
 
     // Highlight
     canvas.drawCircle(Offset(cx - r * 0.3, cy - r * 0.3), r * 0.25,
-        Paint()..color = Colors.white.withOpacity(0.5));
+        Paint()..color = Colors.white.withValues(alpha: 0.5));
 
     _drawTextWithShadow(canvas, cx, cy + r + 20, label,
         11, colorFromHex(widget.textColor), weight: FontWeight.bold);
     _drawText(canvas, cx, size.height - 8, widget.label,
-        9, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.center);
+        9, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.center);
   }
 
   @override
@@ -1846,13 +1846,13 @@ class GraphPainter extends CustomPainter {
 
     _drawBackground(canvas, size, widget);
 
-    _drawText(canvas, 12, 16, widget.label, 10, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 12, 16, widget.label, 10, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     // Grid
     for (final l in [0.25, 0.5, 0.75]) {
       final y = 35 + (size.height - 65) * l;
       canvas.drawLine(Offset(45, y), Offset(size.width - 12, y),
-          Paint()..color = Colors.white.withOpacity(0.1)..strokeWidth = 0.5);
+          Paint()..color = Colors.white.withValues(alpha: 0.1)..strokeWidth = 0.5);
     }
 
     if (history.isNotEmpty && history.length > 1) {
@@ -1879,14 +1879,14 @@ class GraphPainter extends CustomPainter {
       // Fill gradient
       canvas.drawPath(fillPath, Paint()
         ..shader = ui.Gradient.linear(
-          Offset(0, 35),
+          const Offset(0, 35),
           Offset(0, size.height - 30),
-          [color.withOpacity(0.3), color.withOpacity(0.0)]
+          [color.withValues(alpha: 0.3), color.withValues(alpha: 0.0)]
         ));
 
       // Line glow
       canvas.drawPath(path, Paint()
-        ..color = color.withOpacity(0.5)
+        ..color = color.withValues(alpha: 0.5)
         ..strokeWidth = 4
         ..style = PaintingStyle.stroke
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
@@ -1920,7 +1920,7 @@ class ChartPainter extends CustomPainter {
 
     _drawBackground(canvas, size, widget);
 
-    _drawText(canvas, 12, 16, widget.label, 10, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 12, 16, widget.label, 10, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     final barCount = history.isNotEmpty ? history.length : 8;
     final barW = (size.width - 65) / barCount - 4;
@@ -1936,7 +1936,7 @@ class ChartPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(x - 2, y - 2, barW + 4, h + 4), const Radius.circular(4)),
         Paint()
-          ..color = color.withOpacity(0.2)
+          ..color = color.withValues(alpha: 0.2)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
       );
 
@@ -1947,7 +1947,7 @@ class ChartPainter extends CustomPainter {
           ..shader = ui.Gradient.linear(
             Offset(x, y),
             Offset(x, y + h),
-            [color, color.withOpacity(0.6)],
+            [color, color.withValues(alpha: 0.6)],
           ),
       );
     }
@@ -2006,14 +2006,14 @@ class StaticImagePainter extends CustomPainter {
     _drawBackground(canvas, size, widget);
     // تصویر از طریق ویجت Flutter بارگذاری می‌شود نه Canvas
     // اینجا placeholder
-    final iconPaint = Paint()..color = Colors.white.withOpacity(0.3);
+    final iconPaint = Paint()..color = Colors.white.withValues(alpha: 0.3);
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(10, 10, size.width - 20, size.height - 20), const Radius.circular(8)),
       iconPaint..style = PaintingStyle.stroke..strokeWidth = 2,
     );
-    _drawText(canvas, size.width / 2, size.height / 2, '🖼️', 24, Colors.white.withOpacity(0.4));
+    _drawText(canvas, size.width / 2, size.height / 2, '🖼️', 24, Colors.white.withValues(alpha: 0.4));
     if (widget.staticImageUrl.isEmpty) {
-      _drawText(canvas, size.width / 2, size.height / 2 + 20, 'Set Image URL', 10, Colors.white.withOpacity(0.3));
+      _drawText(canvas, size.width / 2, size.height / 2 + 20, 'Set Image URL', 10, Colors.white.withValues(alpha: 0.3));
     }
   }
 
@@ -2044,7 +2044,7 @@ class StaticShapePainter extends CustomPainter {
       canvas.translate(-size.width / 2, -size.height / 2);
     }
 
-    final m = 4.0;
+    const m = 4.0;
     switch (widget.staticShapeType) {
       case 'circle':
         final r = math.min(size.width, size.height) / 2 - m;
@@ -2088,11 +2088,11 @@ class StaticPipePainter extends CustomPainter {
     final color = colorFromHex(widget.staticPipeColor);
     final w = widget.staticPipeWidth;
     final highlight = Paint()
-      ..color = Colors.white.withOpacity(0.15)
+      ..color = Colors.white.withValues(alpha: 0.15)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
     final pipePaint = Paint()..color = color..strokeWidth = w..strokeCap = StrokeCap.round;
-    final pipeEdge = Paint()..color = color.withOpacity(0.5)..strokeWidth = w + 4..strokeCap = StrokeCap.round;
+    final pipeEdge = Paint()..color = color.withValues(alpha: 0.5)..strokeWidth = w + 4..strokeCap = StrokeCap.round;
 
     final cx = size.width / 2, cy = size.height / 2;
 
@@ -2138,8 +2138,8 @@ class StaticPipePainter extends CustomPainter {
         canvas.drawLine(Offset(2, cy - w / 3), Offset(size.width - 2, cy - w / 3), highlight);
     }
     // Flanges at ends
-    canvas.drawCircle(Offset(0, cy), w / 2 + 2, Paint()..color = color.withOpacity(0.6));
-    canvas.drawCircle(Offset(size.width, cy), w / 2 + 2, Paint()..color = color.withOpacity(0.6));
+    canvas.drawCircle(Offset(0, cy), w / 2 + 2, Paint()..color = color.withValues(alpha: 0.6));
+    canvas.drawCircle(Offset(size.width, cy), w / 2 + 2, Paint()..color = color.withValues(alpha: 0.6));
   }
 
   @override
@@ -2221,7 +2221,7 @@ class StaticLinePainter extends CustomPainter {
       Paint()..color = color..strokeWidth = w..strokeCap = StrokeCap.round);
     // Glow
     canvas.drawLine(Offset(0, size.height / 2), Offset(size.width, size.height / 2),
-      Paint()..color = color.withOpacity(0.3)..strokeWidth = w + 4..strokeCap = StrokeCap.round
+      Paint()..color = color.withValues(alpha: 0.3)..strokeWidth = w + 4..strokeCap = StrokeCap.round
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
   }
 
@@ -2262,12 +2262,12 @@ class StaticArrowPainter extends CustomPainter {
 
     // Glow
     canvas.drawPath(bodyPath, Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
     // Fill
     canvas.drawPath(bodyPath, Paint()..color = color);
     // Highlight
-    canvas.drawPath(bodyPath, Paint()..color = Colors.white.withOpacity(0.1)..style = PaintingStyle.stroke..strokeWidth = 1);
+    canvas.drawPath(bodyPath, Paint()..color = Colors.white.withValues(alpha: 0.1)..style = PaintingStyle.stroke..strokeWidth = 1);
 
     canvas.restore();
   }
@@ -2291,8 +2291,8 @@ class CalculatedPainter extends CustomPainter {
 
     // Calculated badge
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTWH(4, 4, 18, 14), const Radius.circular(3)),
-      Paint()..color = Colors.purple.withOpacity(0.3),
+      RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 18, 14), const Radius.circular(3)),
+      Paint()..color = Colors.purple.withValues(alpha: 0.3),
     );
     _drawText(canvas, 13, 11, 'fx', 8, Colors.purple, weight: FontWeight.bold);
 
@@ -2311,7 +2311,7 @@ class CalculatedPainter extends CustomPainter {
         // Glow
         if (isOn) {
           canvas.drawCircle(Offset(cx, cy - 4), r + 12,
-            Paint()..color = stateColor.withOpacity(0.3 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
+            Paint()..color = stateColor.withValues(alpha: 0.3 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
         }
         // Bezel
         canvas.drawCircle(Offset(cx, cy - 4), r + 4,
@@ -2320,19 +2320,19 @@ class CalculatedPainter extends CustomPainter {
         // LED body
         canvas.drawCircle(Offset(cx, cy - 4), r,
           Paint()..shader = ui.Gradient.radial(Offset(cx - r * 0.3, cy - r * 0.3 - 4), r * 1.5,
-            isOn ? [Colors.white.withOpacity(0.7 * opacity), stateColor.withOpacity(opacity), stateColor.withOpacity(0.5 * opacity)]
-                 : [stateColor.withOpacity(0.3), stateColor.withOpacity(0.1), stateColor.withOpacity(0.05)],
+            isOn ? [Colors.white.withValues(alpha: 0.7 * opacity), stateColor.withValues(alpha: opacity), stateColor.withValues(alpha: 0.5 * opacity)]
+                 : [stateColor.withValues(alpha: 0.3), stateColor.withValues(alpha: 0.1), stateColor.withValues(alpha: 0.05)],
             [0.0, 0.4, 1.0]));
-        if (isOn) canvas.drawCircle(Offset(cx - r * 0.25, cy - r * 0.25 - 4), r * 0.2, Paint()..color = Colors.white.withOpacity(0.5 * opacity));
+        if (isOn) canvas.drawCircle(Offset(cx - r * 0.25, cy - r * 0.25 - 4), r * 0.2, Paint()..color = Colors.white.withValues(alpha: 0.5 * opacity));
 
       } else if (displayAs == 'switch') {
         // Switch style
         final trackW = math.min(size.width * 0.5, 48.0);
-        final trackH = 24.0;
+        const trackH = 24.0;
         final trackX = cx - trackW / 2;
         final trackY = cy - trackH / 2 - 4;
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(trackX, trackY, trackW, trackH), Radius.circular(trackH / 2)),
-          Paint()..color = stateColor.withOpacity(0.8 * opacity));
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(trackX, trackY, trackW, trackH), const Radius.circular(trackH / 2)),
+          Paint()..color = stateColor.withValues(alpha: 0.8 * opacity));
         final thumbX = isOn ? trackX + trackW - trackH / 2 : trackX + trackH / 2;
         canvas.drawCircle(Offset(thumbX, trackY + trackH / 2), trackH / 2 - 3,
           Paint()..shader = ui.Gradient.radial(Offset(thumbX - 2, trackY + trackH / 2 - 2), trackH / 2,
@@ -2346,24 +2346,24 @@ class CalculatedPainter extends CustomPainter {
             [const Color(0xFF5A6A7A), const Color(0xFF3A4858)]));
         if (isOn) {
           canvas.drawCircle(Offset(cx, cy - 4), r + 10,
-            Paint()..color = stateColor.withOpacity(0.25 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+            Paint()..color = stateColor.withValues(alpha: 0.25 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
         }
         canvas.drawCircle(Offset(cx, cy - 4), r,
           Paint()..shader = ui.Gradient.radial(Offset(cx - r * 0.3, cy - r * 0.3 - 4), r * 1.4,
-            [Colors.white.withOpacity(0.4 * opacity), stateColor.withOpacity(opacity), stateColor.withOpacity(0.6 * opacity)],
+            [Colors.white.withValues(alpha: 0.4 * opacity), stateColor.withValues(alpha: opacity), stateColor.withValues(alpha: 0.6 * opacity)],
             [0.0, 0.4, 1.0]));
       }
 
       // State label
       _drawText(canvas, cx, cy + (displayAs == 'led' ? math.min(cx, cy - 10) * 0.4 + 14 : 22), stateLabel,
-        12, stateColor.withOpacity(opacity), weight: FontWeight.bold);
+        12, stateColor.withValues(alpha: opacity), weight: FontWeight.bold);
 
       // Timer
       if (widget.calcActiveSeconds > 0 && isOn) {
         final mins = (widget.calcActiveSeconds / 60).floor();
         final secs = (widget.calcActiveSeconds % 60).floor();
         _drawText(canvas, cx, size.height - 22, '⏱ ${mins}m ${secs}s',
-          8, Colors.white.withOpacity(0.4));
+          8, Colors.white.withValues(alpha: 0.4));
       }
     } else {
       // ===== حالت آنالوگ =====
@@ -2376,18 +2376,18 @@ class CalculatedPainter extends CustomPainter {
 
       // Unit
       if (widget.unit.isNotEmpty) {
-        _drawText(canvas, cx, cy + 18, widget.unit, 11, colorFromHex(widget.textColor).withOpacity(0.6));
+        _drawText(canvas, cx, cy + 18, widget.unit, 11, colorFromHex(widget.textColor).withValues(alpha: 0.6));
       }
     }
 
     // Formula preview
     if (widget.calcFormula.isNotEmpty) {
       final short = widget.calcFormula.length > 25 ? '${widget.calcFormula.substring(0, 22)}...' : widget.calcFormula;
-      _drawText(canvas, cx, size.height - 22, short, 7, Colors.purple.withOpacity(0.4));
+      _drawText(canvas, cx, size.height - 22, short, 7, Colors.purple.withValues(alpha: 0.4));
     }
 
     // Label
-    _drawText(canvas, cx, size.height - 8, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.7));
+    _drawText(canvas, cx, size.height - 8, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.7));
   }
 
   @override
@@ -2407,14 +2407,14 @@ class TrendChartPainter extends CustomPainter {
     final cx = size.width / 2;
 
     // Title
-    _drawText(canvas, 10, 14, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 10, 14, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     if (history.length < 2) {
       _drawText(canvas, cx, size.height / 2, 'Collecting...', 11, Colors.white38);
       return;
     }
 
-    final pad = EdgeInsets.fromLTRB(35, 25, 10, 25);
+    const pad = EdgeInsets.fromLTRB(35, 25, 10, 25);
     final cw = size.width - pad.left - pad.right;
     final ch = size.height - pad.top - pad.bottom;
     final mn = history.reduce(math.min);
@@ -2425,9 +2425,9 @@ class TrendChartPainter extends CustomPainter {
     for (int i = 0; i <= 4; i++) {
       final y = pad.top + ch * i / 4;
       canvas.drawLine(Offset(pad.left, y), Offset(size.width - pad.right, y),
-        Paint()..color = Colors.white.withOpacity(0.06));
+        Paint()..color = Colors.white.withValues(alpha: 0.06));
       final v = mx - range * i / 4;
-      _drawText(canvas, pad.left - 4, y + 3, v.toStringAsFixed(0), 7, Colors.white.withOpacity(0.3), align: TextAlign.right);
+      _drawText(canvas, pad.left - 4, y + 3, v.toStringAsFixed(0), 7, Colors.white.withValues(alpha: 0.3), align: TextAlign.right);
     }
 
     // Line + fill
@@ -2444,8 +2444,8 @@ class TrendChartPainter extends CustomPainter {
 
     canvas.drawPath(fillPath, Paint()
       ..shader = ui.Gradient.linear(Offset(0, pad.top), Offset(0, pad.top + ch),
-        [color.withOpacity(0.2), color.withOpacity(0.0)]));
-    canvas.drawPath(path, Paint()..color = color.withOpacity(0.3)..strokeWidth = 3..style = PaintingStyle.stroke
+        [color.withValues(alpha: 0.2), color.withValues(alpha: 0.0)]));
+    canvas.drawPath(path, Paint()..color = color.withValues(alpha: 0.3)..strokeWidth = 3..style = PaintingStyle.stroke
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
     canvas.drawPath(path, Paint()..color = color..strokeWidth = 1.5..style = PaintingStyle.stroke);
 
@@ -2472,10 +2472,10 @@ class SpcChartPainter extends CustomPainter {
     final cx = size.width / 2;
 
     // Title + SPC badge
-    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(4, 4, 26, 14), const Radius.circular(3)),
-      Paint()..color = Colors.teal.withOpacity(0.3));
+    canvas.drawRRect(RRect.fromRectAndRadius(const Rect.fromLTWH(4, 4, 26, 14), const Radius.circular(3)),
+      Paint()..color = Colors.teal.withValues(alpha: 0.3));
     _drawText(canvas, 17, 11, 'SPC', 7, Colors.teal, weight: FontWeight.bold);
-    _drawText(canvas, 35, 14, widget.label, 9, colorFromHex(widget.textColor).withOpacity(0.6), align: TextAlign.left);
+    _drawText(canvas, 35, 14, widget.label, 9, colorFromHex(widget.textColor).withValues(alpha: 0.6), align: TextAlign.left);
 
     if (history.length < 2) {
       _drawText(canvas, cx, size.height / 2, 'Collecting...', 11, Colors.white38);
@@ -2490,7 +2490,7 @@ class SpcChartPainter extends CustomPainter {
     final mx = allVals.reduce(math.max) + 2;
     final range = math.max(mx - mn, 0.1);
 
-    final pad = EdgeInsets.fromLTRB(40, 25, 10, 25);
+    const pad = EdgeInsets.fromLTRB(40, 25, 10, 25);
     final cw = size.width - pad.left - pad.right;
     final ch = size.height - pad.top - pad.bottom;
 
@@ -2499,38 +2499,42 @@ class SpcChartPainter extends CustomPainter {
     // UCL line (red dashed)
     final uclY = toY(ucl);
     _drawDashedLine(canvas, pad.left, uclY, size.width - pad.right, uclY,
-      Paint()..color = Colors.red.withOpacity(0.7)..strokeWidth = 1);
-    _drawText(canvas, pad.left - 4, uclY + 3, 'UCL', 7, Colors.red.withOpacity(0.7), align: TextAlign.right);
+      Paint()..color = Colors.red.withValues(alpha: 0.7)..strokeWidth = 1);
+    _drawText(canvas, pad.left - 4, uclY + 3, 'UCL', 7, Colors.red.withValues(alpha: 0.7), align: TextAlign.right);
 
     // LCL line (red dashed)
     final lclY = toY(lcl);
     _drawDashedLine(canvas, pad.left, lclY, size.width - pad.right, lclY,
-      Paint()..color = Colors.red.withOpacity(0.7)..strokeWidth = 1);
-    _drawText(canvas, pad.left - 4, lclY + 3, 'LCL', 7, Colors.red.withOpacity(0.7), align: TextAlign.right);
+      Paint()..color = Colors.red.withValues(alpha: 0.7)..strokeWidth = 1);
+    _drawText(canvas, pad.left - 4, lclY + 3, 'LCL', 7, Colors.red.withValues(alpha: 0.7), align: TextAlign.right);
 
     // Target line (green)
     final tgtY = toY(target);
     canvas.drawLine(Offset(pad.left, tgtY), Offset(size.width - pad.right, tgtY),
-      Paint()..color = Colors.green.withOpacity(0.5)..strokeWidth = 1);
-    _drawText(canvas, pad.left - 4, tgtY + 3, 'CL', 7, Colors.green.withOpacity(0.6), align: TextAlign.right);
+      Paint()..color = Colors.green.withValues(alpha: 0.5)..strokeWidth = 1);
+    _drawText(canvas, pad.left - 4, tgtY + 3, 'CL', 7, Colors.green.withValues(alpha: 0.6), align: TextAlign.right);
 
     // Zone fills (±1σ, ±2σ)
     final sigma = (ucl - lcl) / 6;
     // Zone C (green) ±1σ
     canvas.drawRect(Rect.fromLTRB(pad.left, toY(target + sigma), size.width - pad.right, toY(target - sigma)),
-      Paint()..color = Colors.green.withOpacity(0.05));
+      Paint()..color = Colors.green.withValues(alpha: 0.05));
     // Zone B (yellow) ±2σ
     canvas.drawRect(Rect.fromLTRB(pad.left, toY(target + 2 * sigma), size.width - pad.right, toY(target + sigma)),
-      Paint()..color = Colors.yellow.withOpacity(0.03));
+      Paint()..color = Colors.yellow.withValues(alpha: 0.03));
     canvas.drawRect(Rect.fromLTRB(pad.left, toY(target - sigma), size.width - pad.right, toY(target - 2 * sigma)),
-      Paint()..color = Colors.yellow.withOpacity(0.03));
+      Paint()..color = Colors.yellow.withValues(alpha: 0.03));
 
     // Data points + line
     final path = Path();
     for (int i = 0; i < history.length; i++) {
       final x = pad.left + cw * i / (history.length - 1);
       final y = toY(history[i]);
-      if (i == 0) path.moveTo(x, y); else path.lineTo(x, y);
+      if (i == 0) {
+        path.moveTo(x, y);
+      } else {
+        path.lineTo(x, y);
+      }
 
       // Point color: red if out of control
       final outOfControl = history[i] > ucl || history[i] < lcl;
@@ -2538,7 +2542,7 @@ class SpcChartPainter extends CustomPainter {
         Paint()..color = outOfControl ? Colors.red : color);
       if (outOfControl) {
         canvas.drawCircle(Offset(x, y), 8,
-          Paint()..color = Colors.red.withOpacity(0.2)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+          Paint()..color = Colors.red.withValues(alpha: 0.2)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
       }
     }
     canvas.drawPath(path, Paint()..color = color..strokeWidth = 1.5..style = PaintingStyle.stroke);
@@ -2586,13 +2590,13 @@ class DataTablePainter extends CustomPainter {
     final alarmColoring = widget.tableAlarmColoring;
     final showQualityIcon = widget.tableShowQualityIcon;
 
-    final pad = 4.0;
+    const pad = 4.0;
     final tableW = size.width - pad * 2;
     final tableH = size.height - pad * 2;
     final cellW = tableW / cols;
     final cellH = tableH / rows;
-    final tx = pad;
-    final ty = pad;
+    const tx = pad;
+    const ty = pad;
 
     // Track merged areas that should be skipped
     final skip = <String>{};
@@ -2621,7 +2625,7 @@ class DataTablePainter extends CustomPainter {
 
       // Alarm-based fill
       if (!isHeader && alarmColoring && cell['alarmColor'] != null) {
-        canvas.drawRect(cellRect, Paint()..color = colorFromHex(cell['alarmColor']).withOpacity(0.12));
+        canvas.drawRect(cellRect, Paint()..color = colorFromHex(cell['alarmColor']).withValues(alpha: 0.12));
       }
 
       final cellCx = cellRect.left + cellRect.width / 2;
@@ -2638,11 +2642,11 @@ class DataTablePainter extends CustomPainter {
         if (value != null) {
           final valStr = value is double ? value.toStringAsFixed(1) : value.toString();
           _drawText(canvas, cellCx, cellCy - 6, '$valStr $unit', 11, colorFromHex(widget.primaryColor), weight: FontWeight.bold);
-          _drawText(canvas, cellCx, cellCy + 8, tagName, 7, Colors.white.withOpacity(0.4));
+          _drawText(canvas, cellCx, cellCy + 8, tagName, 7, Colors.white.withValues(alpha: 0.4));
         } else {
-          _drawText(canvas, cellCx, cellCy - 4, tagName, 9, Colors.white.withOpacity(0.7));
+          _drawText(canvas, cellCx, cellCy - 4, tagName, 9, Colors.white.withValues(alpha: 0.7));
           if (tagDesc.isNotEmpty) {
-            _drawText(canvas, cellCx, cellCy + 8, tagDesc, 7, Colors.white.withOpacity(0.3));
+            _drawText(canvas, cellCx, cellCy + 8, tagDesc, 7, Colors.white.withValues(alpha: 0.3));
           }
         }
 
@@ -2690,9 +2694,10 @@ class DataTablePainter extends CustomPainter {
       final quality = cell['quality']?.toString() ?? 'unknown';
 
       Color fillColor;
-      if (isHeader) fillColor = headerColor;
-      else if (alarmColoring && cell['alarmColor'] != null) fillColor = colorFromHex(cell['alarmColor']).withOpacity(0.12);
-      else fillColor = widget.bgTransparent ? const Color(0x00000000) : colorFromHex(widget.backgroundColor).withOpacity(widget.bgOpacity);
+      if (isHeader) {
+        fillColor = headerColor;
+      } else if (alarmColoring && cell['alarmColor'] != null) fillColor = colorFromHex(cell['alarmColor']).withValues(alpha: 0.12);
+      else fillColor = widget.bgTransparent ? const Color(0x00000000) : colorFromHex(widget.backgroundColor).withValues(alpha: widget.bgOpacity);
 
       canvas.drawRect(cellRect, Paint()..color = fillColor);
       canvas.drawRect(cellRect, Paint()..color = borderColor..style = PaintingStyle.stroke..strokeWidth = 1);
@@ -2703,10 +2708,10 @@ class DataTablePainter extends CustomPainter {
         if (value != null) {
           final valStr = value is double ? value.toStringAsFixed(1) : value.toString();
           _drawText(canvas, cellCx, cellCy - 6, '$valStr $unit', 11, colorFromHex(widget.primaryColor), weight: FontWeight.bold);
-          _drawText(canvas, cellCx, cellCy + 8, tagName, 7, Colors.white.withOpacity(0.4));
+          _drawText(canvas, cellCx, cellCy + 8, tagName, 7, Colors.white.withValues(alpha: 0.4));
         } else {
-          _drawText(canvas, cellCx, cellCy - 4, tagName, 9, Colors.white.withOpacity(0.7));
-          if (tagDesc.isNotEmpty) _drawText(canvas, cellCx, cellCy + 8, tagDesc, 7, Colors.white.withOpacity(0.3));
+          _drawText(canvas, cellCx, cellCy - 4, tagName, 9, Colors.white.withValues(alpha: 0.7));
+          if (tagDesc.isNotEmpty) _drawText(canvas, cellCx, cellCy + 8, tagDesc, 7, Colors.white.withValues(alpha: 0.3));
         }
         if (showQualityIcon) {
           Color qColor;
@@ -2763,7 +2768,7 @@ class AnimatedPathPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final highlightPaint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -2772,8 +2777,11 @@ class AnimatedPathPainter extends CustomPainter {
     for (final pts in branches) {
       final pipePath = Path();
       for (int i = 0; i < pts.length; i++) {
-        if (i == 0) pipePath.moveTo(pts[i].dx, pts[i].dy);
-        else pipePath.lineTo(pts[i].dx, pts[i].dy);
+        if (i == 0) {
+          pipePath.moveTo(pts[i].dx, pts[i].dy);
+        } else {
+          pipePath.lineTo(pts[i].dx, pts[i].dy);
+        }
       }
       canvas.drawPath(pipePath, pipePaint);
       canvas.drawPath(pipePath, innerPaint);
@@ -2794,14 +2802,14 @@ class AnimatedPathPainter extends CustomPainter {
             final opacity = 0.25 + 0.75 * math.sin(base * math.pi);
             final shifted = _shiftPointForDirection(pos, pts, laneShift);
             canvas.drawCircle(shifted, particleSize + 2,
-              Paint()..color = flowColor.withOpacity(0.18 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+              Paint()..color = flowColor.withValues(alpha: 0.18 * opacity)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
             canvas.drawCircle(shifted, particleSize,
-              Paint()..color = flowColor.withOpacity(opacity));
+              Paint()..color = flowColor.withValues(alpha: opacity));
           }
         }
 
         canvas.drawPath(pipePath, Paint()
-          ..color = flowColor.withOpacity(0.12)
+          ..color = flowColor.withValues(alpha: 0.12)
           ..strokeWidth = pw - 2
           ..style = PaintingStyle.stroke
           ..strokeCap = StrokeCap.round
@@ -2823,12 +2831,12 @@ class AnimatedPathPainter extends CustomPainter {
         : (widget.unit.isNotEmpty ? '${widget.value.toStringAsFixed(1)} ${widget.unit}' : widget.label);
     if (displayText.isNotEmpty) {
       final textW = math.min(size.width * 0.5, 140.0);
-      final textH = 20.0;
+      const textH = 20.0;
       final tx = (size.width - textW) / 2;
       final ty = math.max(2.0, cy - textH / 2);
       canvas.drawRRect(
         RRect.fromRectAndRadius(Rect.fromLTWH(tx, ty, textW, textH), const Radius.circular(8)),
-        Paint()..color = Colors.black.withOpacity(0.35),
+        Paint()..color = Colors.black.withValues(alpha: 0.35),
       );
       _drawText(canvas, tx + textW / 2, ty + textH / 2 + 1, displayText, 9, Colors.white, weight: FontWeight.w600);
     }
@@ -2928,7 +2936,7 @@ void _drawBackground(Canvas canvas, Size size, ScadaWidget widget) {
     canvas.drawRRect(
       rect.shift(const Offset(0, 4)),
       Paint()
-        ..color = Colors.black.withOpacity(0.3 * opacity)
+        ..color = Colors.black.withValues(alpha: 0.3 * opacity)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
     );
   }
@@ -2936,11 +2944,11 @@ void _drawBackground(Canvas canvas, Size size, ScadaWidget widget) {
   // پس‌زمینه با گرادیانت
   final bgPaint = Paint()
     ..shader = ui.Gradient.linear(
-      Offset(0, 0),
+      const Offset(0, 0),
       Offset(0, size.height),
       [
-        bgColor.withOpacity(opacity),
-        bgColor.withOpacity(opacity * 0.7),
+        bgColor.withValues(alpha: opacity),
+        bgColor.withValues(alpha: opacity * 0.7),
       ],
     );
   canvas.drawRRect(rect, bgPaint);
@@ -2953,7 +2961,7 @@ void _drawBackground(Canvas canvas, Size size, ScadaWidget widget) {
         Radius.circular(math.max(0, radius - 1)),
       ),
       Paint()
-        ..color = Colors.white.withOpacity(0.08 * opacity)
+        ..color = Colors.white.withValues(alpha: 0.08 * opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1,
     );
@@ -2995,7 +3003,7 @@ void _drawTextWithShadow(Canvas canvas, double x, double y, String text, double 
       style: TextStyle(
         fontSize: fontSize,
         fontWeight: weight,
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
       ),
     ),
     textDirection: TextDirection.ltr,
@@ -3031,7 +3039,7 @@ void _drawTextWithGlow(Canvas canvas, double x, double y, String text, double fo
         fontWeight: weight,
         fontFamily: font == 'monospace' ? 'monospace' : null,
         foreground: Paint()
-          ..color = color.withOpacity(0.5)
+          ..color = color.withValues(alpha: 0.5)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
       ),
     ),
@@ -3056,3 +3064,4 @@ void _drawTextWithGlow(Canvas canvas, double x, double y, String text, double fo
   textPainter.layout();
   textPainter.paint(canvas, Offset(x - textPainter.width / 2, y - textPainter.height / 2));
 }
+

@@ -142,7 +142,7 @@
 
 //   @override
 //   TextStyle? get weekdayStyle => _textTheme.bodySmall?.apply(
-//     color: _colors.onSurface.withOpacity(0.60),
+//     color: _colors.onSurface.withValues(alpha: 0.60),
 //   );
 
 //   @override
@@ -154,7 +154,7 @@
 //       if (states.contains(MaterialState.selected)) {
 //         return _colors.onPrimary;
 //       } else if (states.contains(MaterialState.disabled)) {
-//         return _colors.onSurface.withOpacity(0.38);
+//         return _colors.onSurface.withValues(alpha: 0.38);
 //       }
 //       return _colors.onSurface;
 //     });
@@ -173,23 +173,23 @@
 //     MaterialStateProperty.resolveWith((Set<MaterialState> states) {
 //       if (states.contains(MaterialState.selected)) {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onPrimary.withOpacity(0.38);
+//           return _colors.onPrimary.withValues(alpha: 0.38);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onPrimary.withOpacity(0.08);
+//           return _colors.onPrimary.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onPrimary.withOpacity(0.12);
+//           return _colors.onPrimary.withValues(alpha: 0.12);
 //         }
 //       } else {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.12);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.12);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.08);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.12);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.12);
 //         }
 //       }
 //       return null;
@@ -201,7 +201,7 @@
 //       if (states.contains(MaterialState.selected)) {
 //         return _colors.onPrimary;
 //       } else if (states.contains(MaterialState.disabled)) {
-//         return _colors.onSurface.withOpacity(0.38);
+//         return _colors.onSurface.withValues(alpha: 0.38);
 //       }
 //       return _colors.primary;
 //     });
@@ -237,30 +237,30 @@
 //   TextStyle? get rangePickerHeaderHelpStyle => _textTheme.labelSmall;
 
 //   @override
-//   Color? get rangeSelectionBackgroundColor => _colors.primary.withOpacity(0.12);
+//   Color? get rangeSelectionBackgroundColor => _colors.primary.withValues(alpha: 0.12);
 
 //   @override
 //   MaterialStateProperty<Color?>? get rangeSelectionOverlayColor =>
 //     MaterialStateProperty.resolveWith((Set<MaterialState> states) {
 //       if (states.contains(MaterialState.selected)) {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onPrimary.withOpacity(0.38);
+//           return _colors.onPrimary.withValues(alpha: 0.38);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onPrimary.withOpacity(0.08);
+//           return _colors.onPrimary.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onPrimary.withOpacity(0.12);
+//           return _colors.onPrimary.withValues(alpha: 0.12);
 //         }
 //       } else {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.12);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.12);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.08);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.12);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.12);
 //         }
 //       }
 //       return null;
@@ -336,7 +336,7 @@
 //       if (states.contains(MaterialState.selected)) {
 //         return _colors.onPrimary;
 //       } else if (states.contains(MaterialState.disabled)) {
-//         return _colors.onSurface.withOpacity(0.38);
+//         return _colors.onSurface.withValues(alpha: 0.38);
 //       }
 //       return _colors.onSurface;
 //     });
@@ -355,23 +355,23 @@
 //     MaterialStateProperty.resolveWith((Set<MaterialState> states) {
 //       if (states.contains(MaterialState.selected)) {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onPrimary.withOpacity(0.1);
+//           return _colors.onPrimary.withValues(alpha: 0.1);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onPrimary.withOpacity(0.08);
+//           return _colors.onPrimary.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onPrimary.withOpacity(0.1);
+//           return _colors.onPrimary.withValues(alpha: 0.1);
 //         }
 //       } else {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.1);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.1);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.08);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.1);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.1);
 //         }
 //       }
 //       return null;
@@ -383,7 +383,7 @@
 //       if (states.contains(MaterialState.selected)) {
 //         return _colors.onPrimary;
 //       } else if (states.contains(MaterialState.disabled)) {
-//         return _colors.primary.withOpacity(0.38);
+//         return _colors.primary.withValues(alpha: 0.38);
 //       }
 //       return _colors.primary;
 //     });
@@ -403,7 +403,7 @@
 //       if (states.contains(MaterialState.selected)) {
 //         return _colors.onPrimary;
 //       } else if (states.contains(MaterialState.disabled)) {
-//         return _colors.onSurfaceVariant.withOpacity(0.38);
+//         return _colors.onSurfaceVariant.withValues(alpha: 0.38);
 //       }
 //       return _colors.onSurfaceVariant;
 //     });
@@ -422,23 +422,23 @@
 //     MaterialStateProperty.resolveWith((Set<MaterialState> states) {
 //       if (states.contains(MaterialState.selected)) {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onPrimary.withOpacity(0.1);
+//           return _colors.onPrimary.withValues(alpha: 0.1);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onPrimary.withOpacity(0.08);
+//           return _colors.onPrimary.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onPrimary.withOpacity(0.1);
+//           return _colors.onPrimary.withValues(alpha: 0.1);
 //         }
 //       } else {
 //         if (states.contains(MaterialState.pressed)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.1);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.1);
 //         }
 //         if (states.contains(MaterialState.hovered)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.08);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.08);
 //         }
 //         if (states.contains(MaterialState.focused)) {
-//           return _colors.onSurfaceVariant.withOpacity(0.1);
+//           return _colors.onSurfaceVariant.withValues(alpha: 0.1);
 //         }
 //       }
 //       return null;
@@ -457,13 +457,13 @@
 //   MaterialStateProperty<Color?>? get rangeSelectionOverlayColor =>
 //     MaterialStateProperty.resolveWith((Set<MaterialState> states) {
 //       if (states.contains(MaterialState.pressed)) {
-//         return _colors.onPrimaryContainer.withOpacity(0.1);
+//         return _colors.onPrimaryContainer.withValues(alpha: 0.1);
 //       }
 //       if (states.contains(MaterialState.hovered)) {
-//         return _colors.onPrimaryContainer.withOpacity(0.08);
+//         return _colors.onPrimaryContainer.withValues(alpha: 0.08);
 //       }
 //       if (states.contains(MaterialState.focused)) {
-//         return _colors.onPrimaryContainer.withOpacity(0.1);
+//         return _colors.onPrimaryContainer.withValues(alpha: 0.1);
 //       }
 //       return null;
 //     });
@@ -482,3 +482,4 @@
 // }
 
 // // END GENERATED TOKEN PROPERTIES - PersianDatePicker
+

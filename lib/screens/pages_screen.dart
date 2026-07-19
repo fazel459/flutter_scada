@@ -32,8 +32,8 @@ class PagesScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.1))),
+                color: Colors.black.withValues(alpha: 0.3),
+                border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
               ),
               child: Row(
                 children: [
@@ -43,7 +43,7 @@ class PagesScreen extends ConsumerWidget {
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
                   const Spacer(),
                   Text('👤 ${user.displayName ?? user.username} (${user.role.label})',
-                      style: TextStyle(color: Colors.white.withOpacity(0.7))),
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.7))),
                   const SizedBox(width: 16),
                   if (user.role.isAdmin)
                     ElevatedButton.icon(
@@ -183,9 +183,9 @@ class _PageCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: Colors.white.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           ),
           child: Stack(
             children: [
@@ -213,7 +213,7 @@ class _PageCard extends StatelessWidget {
                             maxLines: 1, overflow: TextOverflow.ellipsis),
                         if (page.description.isNotEmpty)
                           Text(page.description,
-                              style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
                               maxLines: 2, overflow: TextOverflow.ellipsis),
                       ],
                     ),
@@ -265,7 +265,7 @@ class AdminDialog extends StatelessWidget {
                 final u = usersState.users[i];
                 return ListTile(
                   title: Text(u.username, style: const TextStyle(color: Colors.white)),
-                  subtitle: Text(u.email, style: TextStyle(color: Colors.white.withOpacity(0.5))),
+                  subtitle: Text(u.email, style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -309,3 +309,4 @@ class AdminDialog extends StatelessWidget {
     );
   }
 }
+

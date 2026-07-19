@@ -76,7 +76,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(
-                            color: Colors.white.withOpacity(0.1)),
+                            color: Colors.white.withValues(alpha: 0.1)),
                       ),
                     ),
                     child: Row(
@@ -128,13 +128,13 @@ class _MainShellState extends ConsumerState<MainShell> {
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF3B82F6).withOpacity(0.2)
+                                  ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(8),
                               border: isSelected
                                   ? Border.all(
                                       color: const Color(0xFF3B82F6)
-                                          .withOpacity(0.3))
+                                          .withValues(alpha: 0.3))
                                   : null,
                             ),
                             child: ListTile(
@@ -143,7 +143,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                                 item.icon,
                                 color: isSelected
                                     ? const Color(0xFF3B82F6)
-                                    : Colors.white.withOpacity(0.6),
+                                    : Colors.white.withValues(alpha: 0.6),
                                 size: 22,
                               ),
                               title: (_sidebarCollapsed || isMobile)
@@ -153,7 +153,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                                       style: TextStyle(
                                         color: isSelected
                                             ? Colors.white
-                                            : Colors.white.withOpacity(0.7),
+                                            : Colors.white.withValues(alpha: 0.7),
                                         fontSize: 13,
                                         fontWeight: isSelected
                                             ? FontWeight.w600
@@ -175,7 +175,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                              color: Colors.white.withOpacity(0.1)),
+                              color: Colors.white.withValues(alpha: 0.1)),
                         ),
                       ),
                       child: IconButton(
@@ -196,7 +196,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(
-                            color: Colors.white.withOpacity(0.1)),
+                            color: Colors.white.withValues(alpha: 0.1)),
                       ),
                     ),
                     child: Row(
@@ -228,7 +228,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                                 Text(
                                   user.role.label,
                                   style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: Colors.white.withValues(alpha: 0.5),
                                       fontSize: 10),
                                 ),
                               ],
@@ -332,7 +332,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                             style: const TextStyle(color: Colors.white)),
                         subtitle: Text(u.email,
                             style: TextStyle(
-                                color: Colors.white.withOpacity(0.5))),
+                                color: Colors.white.withValues(alpha: 0.5))),
                         trailing: DropdownButton<UserRole>(
                           value: u.role,
                           dropdownColor: const Color(0xFF1E293B),
@@ -369,4 +369,5 @@ class _MenuItem {
   const _MenuItem(
       {required this.icon, required this.label, required this.labelEn});
 }
+
 

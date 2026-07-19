@@ -8,7 +8,7 @@ import 'jalali_date.dart';
 /// Jalali date formatter class
 class JalaliFormatter extends DateFormatter {
   /// make a [JalaliFormatter] from [Jalali] date
-  const JalaliFormatter(Jalali date) : super(date);
+  const JalaliFormatter(Jalali super.date);
 
   /// Jalali month names
   static const List<String> _monthNames = [

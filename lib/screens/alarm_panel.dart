@@ -70,7 +70,7 @@ class AlarmPanel extends ConsumerWidget {
                     itemBuilder: (ctx, i) {
                       final alarm = alarmState.alarms[i];
                       return Container(
-                        color: alarm.acknowledged ? null : Colors.red.withOpacity(0.1),
+                        color: alarm.acknowledged ? null : Colors.red.withValues(alpha: 0.1),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         child: Row(
                           children: [
@@ -105,13 +105,13 @@ class AlarmPanel extends ConsumerWidget {
                                   ),
                                   Text(
                                     'Value: ${alarm.value?.toStringAsFixed(1) ?? '-'} | Threshold: ${alarm.threshold?.toStringAsFixed(1) ?? '-'}',
-                                    style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11),
+                                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
                                   ),
                                 ],
                               ),
                             ),
                             Text(_timeString(alarm.createdAt),
-                                style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 11)),
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
                             const SizedBox(width: 8),
                             if (!alarm.acknowledged)
                               TextButton(
@@ -143,3 +143,4 @@ class AlarmPanel extends ConsumerWidget {
     return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
   }
 }
+

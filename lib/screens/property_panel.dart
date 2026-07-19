@@ -552,9 +552,9 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.purple.withOpacity(0.15),
+                  color: Colors.purple.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                  border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
                 ),
                 child: Text(fn, style: const TextStyle(color: Colors.purple, fontSize: 9, fontFamily: 'monospace')),
               ),
@@ -565,7 +565,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
         _boolField('Digital Output (0/1)', w.calcIsDigital, (v) => _update(w.copyWith(calcIsDigital: v))),
 
         _field('Display As', DropdownButtonFormField<String>(
-          value: w.calcDisplayAs,
+          initialValue: w.calcDisplayAs,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -601,7 +601,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                 margin: const EdgeInsets.only(bottom: 2),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text('🏷️ $tag', style: const TextStyle(color: Colors.blue, fontSize: 10)),
@@ -613,7 +613,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       // ====== فیلدهای مخصوص ویجت‌های داده‌ای ======
       if (!isStatic) ...[
         _field('Unit', DropdownButtonFormField<String>(
-          value: Constants.units.contains(w.unit) ? w.unit : '',
+          initialValue: Constants.units.contains(w.unit) ? w.unit : '',
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -640,7 +640,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       ],
       if (w.states.isNotEmpty)
         _field('Current State', DropdownButtonFormField<String>(
-          value: w.currentState ?? 'unknown',
+          initialValue: w.currentState ?? 'unknown',
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: _inputDecoration(),
@@ -660,9 +660,9 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
-            color: w.boundTagId != null ? Colors.blue.withOpacity(0.1) : Colors.black.withOpacity(0.2),
+            color: w.boundTagId != null ? Colors.blue.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: w.boundTagId != null ? Colors.blue.withOpacity(0.5) : const Color(0xFF475569)),
+            border: Border.all(color: w.boundTagId != null ? Colors.blue.withValues(alpha: 0.5) : const Color(0xFF475569)),
           ),
           child: Row(
             children: [
@@ -689,9 +689,9 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
-            color: w.linkedPageId != null ? Colors.purple.withOpacity(0.1) : Colors.black.withOpacity(0.2),
+            color: w.linkedPageId != null ? Colors.purple.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(color: w.linkedPageId != null ? Colors.purple.withOpacity(0.5) : const Color(0xFF475569)),
+            border: Border.all(color: w.linkedPageId != null ? Colors.purple.withValues(alpha: 0.5) : const Color(0xFF475569)),
           ),
           child: Row(
             children: [
@@ -717,7 +717,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       _field(
         'Protocol',
         DropdownButtonFormField<ProtocolType>(
-          value: w.dataSource.protocol,
+          initialValue: w.dataSource.protocol,
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 13),
           decoration: _inputDecoration(),
@@ -740,7 +740,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
         _field(
           'Register Type',
           DropdownButtonFormField<ModbusRegisterType>(
-            value: w.dataSource.modbusRegisterType,
+            initialValue: w.dataSource.modbusRegisterType,
             dropdownColor: const Color(0xFF1E293B),
             style: const TextStyle(color: Colors.white, fontSize: 13),
             decoration: _inputDecoration(),
@@ -756,7 +756,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
       Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.2),
+          color: Colors.black.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -785,7 +785,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text('Last: ${w.lastDataTime!.toLocal().toString().substring(11, 19)}',
-                    style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 11)),
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
               ),
           ],
         ),
@@ -831,7 +831,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
               activeTrackColor: Colors.blue,
               inactiveTrackColor: const Color(0xFF334155),
               thumbColor: Colors.blue,
-              overlayColor: Colors.blue.withOpacity(0.2),
+              overlayColor: Colors.blue.withValues(alpha: 0.2),
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
             ),
@@ -858,7 +858,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
     return InputDecoration(
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       filled: true,
-      fillColor: Colors.black.withOpacity(0.3),
+      fillColor: Colors.black.withValues(alpha: 0.3),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(4),
         borderSide: const BorderSide(color: Color(0xFF475569)),
@@ -895,7 +895,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                   return ListTile(
                     dense: true,
                     selected: selected,
-                    selectedTileColor: Colors.blue.withOpacity(0.1),
+                    selectedTileColor: Colors.blue.withValues(alpha: 0.1),
                     leading: Container(width: 8, height: 8, decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: (t['isActive'] == true) ? Colors.green : Colors.grey,
@@ -954,7 +954,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                   padding: const EdgeInsets.all(8),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(color: const Color(0xFF334155)),
                   ),
@@ -971,7 +971,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                               children: [
                                 const Text('Row Span', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
                                 DropdownButtonFormField<int>(
-                                  value: rowSpan,
+                                  initialValue: rowSpan,
                                   dropdownColor: const Color(0xFF1E293B),
                                   style: const TextStyle(color: Colors.white, fontSize: 11),
                                   decoration: _inputDecoration(),
@@ -988,7 +988,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                               children: [
                                 const Text('Col Span', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 9)),
                                 DropdownButtonFormField<int>(
-                                  value: colSpan,
+                                  initialValue: colSpan,
                                   dropdownColor: const Color(0xFF1E293B),
                                   style: const TextStyle(color: Colors.white, fontSize: 11),
                                   decoration: _inputDecoration(),
@@ -1017,9 +1017,9 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.red.withOpacity(0.3)),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                       ),
                       child: const Center(child: Text('✕ Clear Binding', style: TextStyle(color: Colors.red, fontSize: 11))),
                     ),
@@ -1106,7 +1106,7 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
                   return ListTile(
                     dense: true,
                     selected: selected,
-                    selectedTileColor: Colors.purple.withOpacity(0.1),
+                    selectedTileColor: Colors.purple.withValues(alpha: 0.1),
                     leading: const Icon(Icons.dashboard, color: Color(0xFF64748B), size: 16),
                     title: Text(p['title'] ?? 'Untitled', style: TextStyle(color: selected ? Colors.purple : Colors.white, fontSize: 12)),
                     onTap: () {
@@ -1123,3 +1123,4 @@ class _PropertyPanelState extends ConsumerState<PropertyPanel> {
     ));
   }
 }
+

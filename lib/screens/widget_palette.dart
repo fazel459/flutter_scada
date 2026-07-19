@@ -89,7 +89,7 @@ class WidgetPalette extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: multiSelectMode ? Colors.orange.withOpacity(0.3) : Colors.transparent,
+                          color: multiSelectMode ? Colors.orange.withValues(alpha: 0.3) : Colors.transparent,
                           borderRadius: BorderRadius.circular(4),
                           border: Border.all(
                             color: multiSelectMode ? Colors.orange : const Color(0xFF475569),
@@ -116,8 +116,8 @@ class WidgetPalette extends ConsumerWidget {
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.15),
-                border: Border.all(color: Colors.blue.withOpacity(0.5)),
+                color: Colors.blue.withValues(alpha: 0.15),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.5)),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Row(
@@ -207,9 +207,9 @@ class WidgetPalette extends ConsumerWidget {
                 child: Container(
                   width: 80, height: 60,
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.9),
+                    color: Colors.blue.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(8),
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8)],
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 8)],
                   ),
                   child: Center(child: Text(type.icon, style: const TextStyle(fontSize: 18))),
                 ),
@@ -247,7 +247,7 @@ class WidgetPalette extends ConsumerWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF1A1A2E),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: const Color(0xFFEAB308).withOpacity(0.3)),
+            border: Border.all(color: const Color(0xFFEAB308).withValues(alpha: 0.3)),
           ),
           child: Row(
             children: [
@@ -280,8 +280,8 @@ class WidgetPalette extends ConsumerWidget {
     if (page == null) return;
 
     // ویجت‌های تمپلت را با ID جدید و مختصات مرکز صفحه کپی کن
-    final baseX = 100.0;
-    final baseY = 100.0;
+    const baseX = 100.0;
+    const baseY = 100.0;
 
     for (final w in tpl.widgets) {
       final newWidget = w.copyWith(
@@ -341,7 +341,7 @@ class WidgetPalette extends ConsumerWidget {
                     labelText: 'Template Name',
                     labelStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                     filled: true,
-                    fillColor: Colors.black.withOpacity(0.3),
+                    fillColor: Colors.black.withValues(alpha: 0.3),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                 ),
@@ -353,7 +353,7 @@ class WidgetPalette extends ConsumerWidget {
                     labelText: 'Description (optional)',
                     labelStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                     filled: true,
-                    fillColor: Colors.black.withOpacity(0.3),
+                    fillColor: Colors.black.withValues(alpha: 0.3),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
                   ),
                 ),
@@ -368,7 +368,7 @@ class WidgetPalette extends ConsumerWidget {
                     child: Container(
                       width: 36, height: 36,
                       decoration: BoxDecoration(
-                        color: selectedIcon == ic ? Colors.blue.withOpacity(0.3) : Colors.black.withOpacity(0.2),
+                        color: selectedIcon == ic ? Colors.blue.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: selectedIcon == ic ? Colors.blue : Colors.transparent, width: 2),
                       ),
@@ -487,11 +487,11 @@ class _PaletteItemState extends State<_PaletteItem> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           decoration: BoxDecoration(
-            color: widget.isSelected ? Colors.blue.withOpacity(0.25)
-                : _hover ? Colors.blue.withOpacity(0.15) : Colors.black.withOpacity(0.3),
+            color: widget.isSelected ? Colors.blue.withValues(alpha: 0.25)
+                : _hover ? Colors.blue.withValues(alpha: 0.15) : Colors.black.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: widget.isSelected ? Colors.blue : _hover ? Colors.blue.withOpacity(0.4) : Colors.transparent,
+              color: widget.isSelected ? Colors.blue : _hover ? Colors.blue.withValues(alpha: 0.4) : Colors.transparent,
               width: widget.isSelected ? 2 : 1,
             ),
           ),
@@ -512,3 +512,4 @@ class _PaletteItemState extends State<_PaletteItem> {
     );
   }
 }
+

@@ -19,7 +19,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
   String _selectedGroup = '';
   String _searchQuery = '';
   bool _loading = true;
-  Set<String> _selectedIds = {};
+  final Set<String> _selectedIds = {};
   bool _selectMode = false;
 
   @override
@@ -154,7 +154,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
                 prefixIcon: const Icon(Icons.search, size: 16, color: Color(0xFF64748B)),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 filled: true,
-                fillColor: Colors.black.withOpacity(0.3),
+                fillColor: Colors.black.withValues(alpha: 0.3),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: BorderSide.none),
               ),
             ),
@@ -187,7 +187,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
           borderRadius: BorderRadius.circular(6),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -219,7 +219,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
           child: DataTable(
             headingRowColor: WidgetStateProperty.all(const Color(0xFF1E293B)),
             dataRowColor: WidgetStateProperty.resolveWith((states) =>
-              states.contains(WidgetState.selected) ? Colors.blue.withOpacity(0.1) : Colors.transparent),
+              states.contains(WidgetState.selected) ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent),
             columnSpacing: 16,
             horizontalMargin: 16,
             headingTextStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
@@ -263,7 +263,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
                 DataCell(Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _protocolColor(tag.protocol).withOpacity(0.15),
+                    color: _protocolColor(tag.protocol).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(tag.protocol.label, style: TextStyle(fontSize: 9, color: _protocolColor(tag.protocol))),
@@ -306,7 +306,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
     final (label, color) = m[q]!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(4)),
+      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(4)),
       child: Text(label, style: TextStyle(fontSize: 9, color: color)),
     );
   }
@@ -378,7 +378,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                         child: Row(children: [
                           Text('Raw [${rawMinCtrl.text} - ${rawMaxCtrl.text}]', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
                           const Text(' → ', style: TextStyle(color: Colors.blue)),
@@ -443,7 +443,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: InputDecoration(
             isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            filled: true, fillColor: Colors.black.withOpacity(0.3),
+            filled: true, fillColor: Colors.black.withValues(alpha: 0.3),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: const BorderSide(color: Color(0xFF475569))),
           ),
         )),
@@ -462,7 +462,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
           dropdownColor: const Color(0xFF1E293B),
           style: const TextStyle(color: Colors.white, fontSize: 12),
           decoration: InputDecoration(isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            filled: true, fillColor: Colors.black.withOpacity(0.3),
+            filled: true, fillColor: Colors.black.withValues(alpha: 0.3),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: const BorderSide(color: Color(0xFF475569)))),
           items: items.map((i) => DropdownMenuItem(value: i, child: Text(labelFn(i)))).toList(),
           onChanged: (v) { if (v != null) onChanged(v); },
@@ -483,7 +483,7 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
             onChanged: (v) => config[key] = isNum ? (num.tryParse(v) ?? 0) : v,
             style: const TextStyle(color: Colors.white, fontSize: 11),
             decoration: InputDecoration(isDense: true, contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              filled: true, fillColor: Colors.black.withOpacity(0.2),
+              filled: true, fillColor: Colors.black.withValues(alpha: 0.2),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(4), borderSide: BorderSide.none)),
           ))),
         ]),
@@ -554,3 +554,4 @@ class _TagManagementScreenState extends ConsumerState<TagManagementScreen> {
     } catch (_) {}
   }
 }
+

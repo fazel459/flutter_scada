@@ -258,7 +258,9 @@ class FormulaEngine {
 
   static _Result _evalFactor(String expr, int pos) {
     // Skip whitespace
-    while (pos < expr.length && expr[pos] == ' ') pos++;
+    while (pos < expr.length && expr[pos] == ' ') {
+      pos++;
+    }
 
     if (pos >= expr.length) return _Result(0, pos);
 
@@ -272,14 +274,18 @@ class FormulaEngine {
     if (expr[pos] == '(') {
       final r = _evalExpression(expr, pos + 1);
       int end = r.pos;
-      while (end < expr.length && expr[end] == ' ') end++;
+      while (end < expr.length && expr[end] == ' ') {
+        end++;
+      }
       if (end < expr.length && expr[end] == ')') end++;
       return _Result(r.value, end);
     }
 
     // Number
     int start = pos;
-    while (pos < expr.length && (expr[pos].contains(RegExp(r'[0-9.]')))) pos++;
+    while (pos < expr.length && (expr[pos].contains(RegExp(r'[0-9.]')))) {
+      pos++;
+    }
     if (pos > start) {
       return _Result(double.tryParse(expr.substring(start, pos)) ?? 0, pos);
     }
