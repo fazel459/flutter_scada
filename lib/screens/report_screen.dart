@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/utils/persian-datetime-picker/lib/persian_datetime_picker.dart';
 import 'package:flutter_scada/utils/persian_utils.dart';
 import 'package:flutter_scada/utils/shamsi_date/lib/shamsi_date.dart';
+import 'package:flutter_scada/widgets/persian_chart.dart';
 import 'package:flutter_scada/widgets/persian_date_range_picker.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../providers/providers.dart';
@@ -628,7 +629,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         : _viewMode == 'stats'
                             ? _buildStatsView()
                             : _viewMode == 'chart'
-                                ? _buildChartView()
+                                ? _buildChartViewNew()
                                 : _buildTableView(),
           ),
         ],
@@ -804,6 +805,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   }
 
   // ============ CHART VIEW ============
+  // ignore: unused_element
   Widget _buildChartView() {
     final series = (_reportData?['series'] as List<dynamic>?) ?? [];
     if (series.isEmpty)
@@ -845,6 +847,67 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
       ),
     );
   }
+
+Widget _buildChartViewNew() {
+  // Ensure _reportData is treated as a nullable List and fallback to empty list
+  // final seriesData = (_reportData as List?) ?? [];
+   final seriesData = (_reportData?['series'] as List?) ?? [];
+  if (seriesData.isEmpty) {
+    return const Center(
+      child: Text("داده‌ای برای نمایش وجود ندارد", style: TextStyle(color: Colors.white38)),
+    );
+  }
+  
+  // تبدیل داده به فرمت چارت
+  final chartSeries = <ChartSeriesData>[];
+  final colors = [
+    const Color(0xFF3B82F6),
+    const Color(0xFF22C55E),
+    const Color(0xFFEF4444),
+    const Color(0xFFEAB308),
+    const Color(0xFF8B5CF6),
+    const Color(0xFF06B6D4),
+    const Color(0xFFF97316),
+    const Color(0xFFEC4899),
+  ];
+  
+  for (var i = 0; i<  seriesData.length; i++) {
+    final s = seriesData[i];
+    final points = (s['dataPoints'] as List?)?.map((p) {
+      return ChartDataPoint(
+        timestamp: DateTime.parse(p['timestamp'] as String),
+        value: (p['value'] as num).toDouble(),
+      );
+    }).toList() ?? [];
+    
+    chartSeries.add(ChartSeriesData(
+      id: s['id'] ?? 'unknown',
+      label: s['label'] ?? 'نامشخص',
+      unit: s['unit'] ?? '',
+      points: points,
+      color: colors[i % colors.length],
+    ));
+  }
+  
+  return PersianChart(
+    seriesList: chartSeries,
+    fromDate: _fromDate,
+    toDate: _toDate,
+    title:"",
+    onPointTap: (point, series) {
+      // اختیاری: کاری انجام دهید وقتی روی نقطه کلیک شد
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${series.label}: ${PersianUtils.formatNumber(point.value)} ${series.unit}\n'
+            '${PersianUtils.formatDateTime(point.timestamp)}',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    },
+  );
+}
 
   Color _chartColor(int index) {
     const colors = [
