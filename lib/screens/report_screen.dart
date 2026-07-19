@@ -150,6 +150,27 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     setState(() {});
   }
 
+void _sampleData()async {
+   final api = ref.read(apiServiceProvider);
+   try {
+      await api.post('/seed/data', {
+        'daysBack': 7,
+        'intervalMinutes': 15,
+        'clearExisting': true,
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('داده‌های نمونه ایجاد شدند'), backgroundColor: Colors.green),
+      );
+      _loadData(); // رفرش گزارش
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
+      );
+    }
+  
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,6 +188,10 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
               icon: const Icon(Icons.refresh, color: Colors.white70),
               onPressed: _loadData,
               tooltip: 'Refresh'),
+               IconButton(
+              icon: const Icon(Icons.dataset, color: Colors.white70),
+              onPressed: _sampleData,
+              tooltip: 'تولید داده تست'),
         ],
       ),
       body: Row(
