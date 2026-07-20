@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'providers/providers.dart';
 import 'screens/auth_screen.dart';
 import 'models/user_model.dart';
+import 'package:flutter/material.dart';
+import 'utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +32,8 @@ void main() async {
     ProviderScope(
       overrides: [
         if (initialToken != null && initialUser != null)
-          _sessionOverride.overrideWith((ref) => SessionData(token: initialToken!, user: initialUser!)),
+          _sessionOverride.overrideWith(
+              (ref) => SessionData(token: initialToken!, user: initialUser!)),
       ],
       child: const MyApp(),
     ),
@@ -84,21 +87,25 @@ class _MyAppState extends ConsumerState<MyApp> {
         Locale("en", "US"),
       ],
       localizationsDelegates: const [
-        
         PersianMaterialLocalizations.delegate,
         PersianCupertinoLocalizations.delegate,
-
       ],
+      // theme: AppTheme.darkTheme,
+      // builder: (context, child) {
+      //   return Directionality(
+      //     textDirection: TextDirection.rtl,
+      //     child: child!,
+      //   );
+      // },
       theme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         useMaterial3: true,
+        fontFamily: 'Vazirmatn',
       ),
       // home :const ReportScreen(),
-      home: !authState.isAuthenticated
-          ? const AuthScreen()
-          : const MainShell(),
+      home: !authState.isAuthenticated ? const AuthScreen() : const MainShell(),
     );
   }
 }

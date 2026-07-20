@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/persian_utils.dart';
 
+
 /// مدل داده جدول
 class TableRowData {
   final String tag;
@@ -191,7 +192,7 @@ class _ReportTableViewState extends State<ReportTableView> {
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('کپی شد: $text'),
+        content: Text('کپی شد: $text',style: const TextStyle(fontFamily: 'Vazirmatn'),),
         duration: const Duration(seconds: 1),
         backgroundColor: Colors.green,
       ),
@@ -202,7 +203,7 @@ class _ReportTableViewState extends State<ReportTableView> {
     final selected = _filteredRows.where((r) => r.isSelected).toList();
     if (selected.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('هیچ ردیفی انتخاب نشده'), backgroundColor: Colors.orange),
+        const SnackBar(content: Text('هیچ ردیفی انتخاب نشده',style: TextStyle(fontFamily: 'Vazirmatn'),), backgroundColor: Colors.orange),
       );
       return;
     }
@@ -218,7 +219,7 @@ class _ReportTableViewState extends State<ReportTableView> {
           children: [
             Icon(Icons.table_chart_outlined, color: Colors.white24, size: 64),
             SizedBox(height: 12),
-            Text('داده‌ای برای نمایش وجود ندارد', style: TextStyle(color: Colors.white38)),
+            Text('داده‌ای برای نمایش وجود ندارد', style: TextStyle(color: Colors.white38,fontFamily: 'Vazirmatn'),),
           ],
         ),
       );
@@ -312,7 +313,7 @@ class _ReportTableViewState extends State<ReportTableView> {
                       dropdownColor: const Color(0xFF1E293B),
                       style: const TextStyle(color: Colors.white, fontSize: 11),
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('همه تگ‌ها')),
+                        const DropdownMenuItem(value: null, child: Text('همه تگ‌ها',style: TextStyle(fontFamily: 'Vazirmatn',fontSize: 12),),),
                         ..._uniqueTags.map((t) => DropdownMenuItem(value: t, child: Text(t))),
                       ],
                       onChanged: (v) {
@@ -328,7 +329,7 @@ class _ReportTableViewState extends State<ReportTableView> {
               
               // فیلتر آلارم
               FilterChip(
-                label: const Text('فقط آلارم‌ها', style: TextStyle(fontSize: 10)),
+                label: const Text('فقط آلارم‌ها', style: TextStyle(fontSize: 10,fontFamily: 'Vazirmatn')),
                 selected: _showOnlyAlarms,
                 onSelected: (v) {
                   _showOnlyAlarms = v;
@@ -372,7 +373,7 @@ class _ReportTableViewState extends State<ReportTableView> {
               
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Text('تا', style: TextStyle(color: Color(0xFF64748B), fontSize: 11)),
+                child: Text('تا', style: TextStyle(color: Color(0xFF64748B), fontSize: 11,fontFamily: 'Vazirmatn')),
               ),
               
               // حداکثر مقدار
@@ -408,7 +409,7 @@ class _ReportTableViewState extends State<ReportTableView> {
                 ),
                 child: Text(
                   '${PersianUtils.formatInt(_filteredRows.length)} نتیجه',
-                  style: const TextStyle(color: Colors.blue, fontSize: 11),
+                  style: const TextStyle(color: Colors.blue, fontSize: 11,fontFamily: 'Vazirmatn'),
                 ),
               ),
               
@@ -424,14 +425,14 @@ class _ReportTableViewState extends State<ReportTableView> {
                   ),
                   child: Text(
                     '${PersianUtils.formatInt(_selectedCount)} انتخاب',
-                    style: const TextStyle(color: Colors.green, fontSize: 11),
+                    style: const TextStyle(color: Colors.green, fontSize: 11,fontFamily: 'Vazirmatn'),
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: _exportSelected,
                   icon: const Icon(Icons.file_download, size: 16),
-                  label: const Text('خروجی', style: TextStyle(fontSize: 11)),
+                  label: const Text('خروجی', style: TextStyle(fontSize: 11,fontFamily: 'Vazirmatn')),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -468,7 +469,7 @@ class _ReportTableViewState extends State<ReportTableView> {
           // شماره ردیف
           const SizedBox(
             width: 50,
-            child: Text('#', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            child: Text('#', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold,fontFamily: 'Vazirmatn'), textAlign: TextAlign.center),
           ),
           
           // ستون‌های قابل مرتب‌سازی
@@ -480,7 +481,7 @@ class _ReportTableViewState extends State<ReportTableView> {
           // وضعیت
           const SizedBox(
             width: 60,
-            child: Text('وضعیت', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+            child: Text('وضعیت', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold,fontFamily: 'Vazirmatn'), textAlign: TextAlign.center,),
           ),
         ],
       ),
@@ -522,7 +523,7 @@ class _ReportTableViewState extends State<ReportTableView> {
     
     if (rows.isEmpty) {
       return const Center(
-        child: Text('نتیجه‌ای یافت نشد', style: TextStyle(color: Colors.white38)),
+        child: Text('نتیجه‌ای یافت نشد', style: TextStyle(color: Colors.white38,fontFamily: 'Vazirmatn')),
       );
     }
 
@@ -578,7 +579,7 @@ class _ReportTableViewState extends State<ReportTableView> {
                   width: 50,
                   child: Text(
                     PersianUtils.toPersian(globalIndex),
-                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 10),
+                    style: const TextStyle(color: Color(0xFF64748B), fontSize: 10,fontFamily: 'Vazirmatn'),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -649,7 +650,7 @@ class _ReportTableViewState extends State<ReportTableView> {
                             children: [
                               Icon(Icons.warning, size: 12, color: Colors.red),
                               SizedBox(width: 2),
-                              Text('آلارم', style: TextStyle(color: Colors.red, fontSize: 9)),
+                              Text('آلارم', style: TextStyle(color: Colors.red, fontSize: 9,fontFamily: 'Vazirmatn')),
                             ],
                           ),
                         )
@@ -674,7 +675,7 @@ class _ReportTableViewState extends State<ReportTableView> {
           children: [
             ListTile(
               leading: const Icon(Icons.copy, color: Colors.white70),
-              title: const Text('کپی مقدار', style: TextStyle(color: Colors.white)),
+              title: const Text('کپی مقدار', style: TextStyle(color: Colors.white,fontFamily: 'Vazirmatn')),
               onTap: () {
                 _copyToClipboard(row.value.toString());
                 Navigator.pop(context);
@@ -682,7 +683,7 @@ class _ReportTableViewState extends State<ReportTableView> {
             ),
             ListTile(
               leading: const Icon(Icons.copy_all, color: Colors.white70),
-              title: const Text('کپی کامل ردیف', style: TextStyle(color: Colors.white)),
+              title: const Text('کپی کامل ردیف', style: TextStyle(color: Colors.white,fontFamily: 'Vazirmatn')),
               onTap: () {
                 _copyToClipboard('${row.tag}: ${row.value} ${row.unit} - ${PersianUtils.formatDateTime(row.timestamp)}');
                 Navigator.pop(context);
@@ -690,7 +691,7 @@ class _ReportTableViewState extends State<ReportTableView> {
             ),
             ListTile(
               leading: const Icon(Icons.filter_alt, color: Colors.white70),
-              title: const Text('فیلتر بر این تگ', style: TextStyle(color: Colors.white)),
+              title: const Text('فیلتر بر این تگ', style: TextStyle(color: Colors.white,fontFamily: 'Vazirmatn')),
               onTap: () {
                 Navigator.pop(context);
                 _selectedTag = row.tag;
@@ -713,7 +714,7 @@ class _ReportTableViewState extends State<ReportTableView> {
       child: Row(
         children: [
           // تعداد در صفحه
-          const Text('تعداد در صفحه:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11)),
+          const Text('تعداد در صفحه:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11,fontFamily: 'Vazirmatn')),
           const SizedBox(width: 8),
           DropdownButtonHideUnderline(
             child: DropdownButton<int>(
@@ -739,7 +740,7 @@ class _ReportTableViewState extends State<ReportTableView> {
           // شماره صفحه
           Text(
             'صفحه ${PersianUtils.toPersian(_currentPage + 1)} از ${PersianUtils.toPersian(_totalPages)}',
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+            style: const TextStyle(color: Color(0xFF94A3B8),fontFamily: 'Vazirmatn', fontSize: 11),
           ),
           
           const SizedBox(width: 16),

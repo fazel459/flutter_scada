@@ -2,15 +2,20 @@
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/utils/persian-datetime-picker/lib/persian_datetime_picker.dart';
 import 'package:flutter_scada/utils/persian_utils.dart';
 import 'package:flutter_scada/utils/shamsi_date/lib/shamsi_date.dart';
 import 'package:flutter_scada/widgets/persian_chart.dart';
 import 'package:flutter_scada/widgets/persian_date_range_picker.dart';
+import 'package:flutter_scada/widgets/report_alarms_view.dart';
+import 'package:flutter_scada/widgets/report_stats_view.dart';
+import 'package:flutter_scada/widgets/report_table_view.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../providers/providers.dart';
 import '../services/api_service.dart';
+import '../services/report_export_service.dart';
 
 class ReportScreen extends ConsumerStatefulWidget {
   final String? pageId;
@@ -25,6 +30,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   List<Map<String, dynamic>> _allTags = [];
   Set<String> _selectedTagIds = {};
   bool _tagsLoading = true;
+  List<AlarmData> _alarms = [];
+  bool _alarmsLoading = false;
 
   // بازه زمانی
   DateTime _fromDate = DateTime.now().subtract(const Duration(days: 7));
@@ -49,6 +56,236 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   void initState() {
     super.initState();
     _loadTags();
+  }
+
+  void _exportSelectedRows(List<TableRowData> rows) {
+  if (rows.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('هیچ ردیفی انتخاب نشده'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
+  }
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF1E293B),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${PersianUtils.toPersian(rows.length)} ردیف انتخاب شده',
+            style: const TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Vazirmatn'),
+          ),
+          const SizedBox(height: 16),
+
+          // PDF
+          ListTile(
+            leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+            title: const Text(
+              'خروجی PDF',
+              style: TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+            ),
+            subtitle: const Text(
+              'مناسب چاپ و ارسال',
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'Vazirmatn'),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              _doPdfExport(rows);
+            },
+          ),
+
+          // چاپ
+          ListTile(
+            leading: const Icon(Icons.print, color: Colors.blue),
+            title: const Text(
+              'چاپ مستقیم',
+              style: TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+            ),
+            subtitle: const Text(
+              'ارسال به پرینتر',
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'Vazirmatn'),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              _doPrintExport(rows);
+            },
+          ),
+
+          // CSV
+          ListTile(
+            leading: const Icon(Icons.table_chart, color: Colors.green),
+            title: const Text(
+              'کپی CSV',
+              style: TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+            ),
+            subtitle: const Text(
+              'مناسب اکسل',
+              style: TextStyle(color: Color(0xFF64748B), fontSize: 11, fontFamily: 'Vazirmatn'),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              _doCsvExport(rows);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> _doPdfExport(List<TableRowData> rows) async {
+  try {
+    // نمایش loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          backgroundColor: Color(0xFF1E293B),
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: Colors.blue),
+              SizedBox(width: 16),
+              Text(
+                'در حال ایجاد PDF...',
+                style: TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // تولید و اشتراک PDF
+    await ReportExportService.sharePdf(rows);
+    
+    // بستن loading dialog
+    if (mounted) Navigator.pop(context);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'PDF با ${PersianUtils.toPersian(rows.length)} ردیف ایجاد شد',
+            style: const TextStyle(fontFamily: 'Vazirmatn'),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      Navigator.pop(context); // بستن loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('خطا: $e',style: const TextStyle(fontFamily:'Vazirmatn' ),),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+Future<void> _doPrintExport(List<TableRowData> rows) async {
+  try {
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          backgroundColor: Color(0xFF1E293B),
+          content: Row(
+            children: [
+              CircularProgressIndicator(color: Colors.blue),
+              SizedBox(width: 16),
+              Text(
+                'در حال آماده‌سازی چاپ...',
+                style: TextStyle(color: Colors.white, fontFamily: 'Vazirmatn'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    await ReportExportService.printPdf(rows);
+    
+    if (mounted) Navigator.pop(context);
+  } catch (e) {
+    if (mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+}
+
+void _doCsvExport(List<TableRowData> rows) {
+  final csv = ReportExportService.generateCsv(rows);
+  
+  // کپی در کلیپ‌بورد
+  Clipboard.setData(ClipboardData(text: csv));
+  
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        '${PersianUtils.toPersian(rows.length)} ردیف CSV کپی شد',
+        style: const TextStyle(fontFamily: 'Vazirmatn'),
+      ),
+      backgroundColor: Colors.green,
+    ),
+  );
+}
+
+
+
+  Future<void> _loadAlarms() async {
+    setState(() => _alarmsLoading = true);
+    try {
+      final api = ref.read(apiServiceProvider);
+      final res = await api.get(
+          '/alarms?from=${_fromDate.toIso8601String()} && to=${_toDate.toIso8601String()}');
+
+      _alarms = ((res['alarms'] ?? []) as List)
+          .map((a) => AlarmData(
+                id: a['id'],
+                tag: a['widgetLabel'] ?? '',
+                alarmType: a['alarmType'] ?? '',
+                value: (a['value'] as num?)?.toDouble() ?? 0,
+                threshold: (a['threshold'] as num?)?.toDouble() ?? 0,
+                message: a['message'] ?? '',
+                acknowledged: a['acknowledged'] ?? false,
+                createdAt: DateTime.parse(a['createdAt']),
+                acknowledgedAt: a['acknowledgedAt'] != null
+                    ? DateTime.parse(a['acknowledgedAt'])
+                    : null,
+              ))
+          .toList();
+
+      setState(() => _alarmsLoading = false);
+    } catch (e) {
+      setState(() => _alarmsLoading = false);
+    }
+  }
+
+  Future<void> _acknowledgeAlarm(int alarmId) async {
+    try {
+      final api = ref.read(apiServiceProvider);
+      await api.post('/alarms/acknowledge', {'alarmId': alarmId});
+      await _loadAlarms();
+    } catch (e) {
+      // Handle error
+    }
   }
 
   Future<void> _loadTags() async {
@@ -89,6 +326,8 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
         _reportData = res;
         _dataLoading = false;
       });
+
+      await _loadAlarms();
     } catch (e) {
       setState(() {
         _error = 'Failed to load data: $e';
@@ -150,9 +389,9 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
     setState(() {});
   }
 
-void _sampleData()async {
-   final api = ref.read(apiServiceProvider);
-   try {
+  void _sampleData() async {
+    final api = ref.read(apiServiceProvider);
+    try {
       await api.post('/seed/data', {
         'daysBack': 7,
         'intervalMinutes': 15,
@@ -160,7 +399,9 @@ void _sampleData()async {
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('داده‌های نمونه ایجاد شدند'), backgroundColor: Colors.green),
+        const SnackBar(
+            content: Text('داده‌های نمونه ایجاد شدند'),
+            backgroundColor: Colors.green),
       );
       _loadData(); // رفرش گزارش
     } catch (e) {
@@ -169,8 +410,8 @@ void _sampleData()async {
         SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
       );
     }
-  
-}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -188,7 +429,7 @@ void _sampleData()async {
               icon: const Icon(Icons.refresh, color: Colors.white70),
               onPressed: _loadData,
               tooltip: 'Refresh'),
-               IconButton(
+          IconButton(
               icon: const Icon(Icons.dataset, color: Colors.white70),
               onPressed: _sampleData,
               tooltip: 'تولید داده تست'),
@@ -416,7 +657,8 @@ void _sampleData()async {
                           'To',
                           _toDate,
                           (d) => setState(() {
-                                if (d.isBefore(DateTime.now()) || d.isAtSameMomentAs(DateTime.now())) {
+                                if (d.isBefore(DateTime.now()) ||
+                                    d.isAtSameMomentAs(DateTime.now())) {
                                   _toDate = d;
                                   _quickRange = '';
                                 }
@@ -609,6 +851,7 @@ void _sampleData()async {
                 _viewToggle('📈', 'Chart', 'chart'),
                 const SizedBox(width: 4),
                 _viewToggle('📊', 'Stats', 'stats'),
+                _viewToggle('🚨', 'آلارم', 'alarms'),
                 const Spacer(),
                 if (_reportData != null)
                   Text(
@@ -655,7 +898,9 @@ void _sampleData()async {
                             ? _buildStatsView()
                             : _viewMode == 'chart'
                                 ? _buildChartViewNew()
-                                : _buildTableView(),
+                                : _viewMode == 'alarms'
+                                    ? _buildAlarmsView()
+                                    : _buildTableViewNew(),
           ),
         ],
       ),
@@ -686,6 +931,16 @@ void _sampleData()async {
   }
 
   // ============ TABLE VIEW ============
+
+  Widget _buildTableViewNew() {
+    final series = (_reportData?['series'] as List?) ?? [];
+    return ReportTableView(
+      seriesData: series.cast<Map<String, dynamic>>(),
+      onExport: _exportSelectedRows,
+    );
+  }
+
+  // ignore: unused_element
   Widget _buildTableView() {
     final series = (_reportData?['series'] as List<dynamic>?) ?? [];
     if (series.isEmpty)
@@ -873,66 +1128,57 @@ void _sampleData()async {
     );
   }
 
-Widget _buildChartViewNew() {
-  // Ensure _reportData is treated as a nullable List and fallback to empty list
-  // final seriesData = (_reportData as List?) ?? [];
-   final seriesData = (_reportData?['series'] as List?) ?? [];
-  if (seriesData.isEmpty) {
-    return const Center(
-      child: Text("داده‌ای برای نمایش وجود ندارد", style: TextStyle(color: Colors.white38)),
+  Widget _buildChartViewNew() {
+    // Ensure _reportData is treated as a nullable List and fallback to empty list
+    // final seriesData = (_reportData as List?) ?? [];
+    final seriesData = (_reportData?['series'] as List?) ?? [];
+    if (seriesData.isEmpty) {
+      return const Center(
+        child: Text("داده‌ای برای نمایش وجود ندارد",
+            style: TextStyle(color: Colors.white38)),
+      );
+    }
+
+    // تبدیل داده به فرمت چارت
+    final chartSeries = <ChartSeriesData>[];
+    final colors = [
+      const Color(0xFF3B82F6),
+      const Color(0xFF22C55E),
+      const Color(0xFFEF4444),
+      const Color(0xFFEAB308),
+      const Color(0xFF8B5CF6),
+      const Color(0xFF06B6D4),
+      const Color(0xFFF97316),
+      const Color(0xFFEC4899),
+    ];
+
+    for (var i = 0; i < seriesData.length; i++) {
+      final s = seriesData[i];
+      final points = (s['dataPoints'] as List?)?.map((p) {
+            return ChartDataPoint(
+              timestamp: DateTime.parse(p['timestamp'] as String),
+              value: (p['value'] as num).toDouble(),
+            );
+          }).toList() ??
+          [];
+
+      chartSeries.add(ChartSeriesData(
+        id: s['id'] ?? 'unknown',
+        label: s['label'] ?? 'نامشخص',
+        unit: s['unit'] ?? '',
+        points: points,
+        color: colors[i % colors.length],
+      ));
+    }
+
+    return PersianChart(
+      seriesList: chartSeries,
+      fromDate: _fromDate,
+      toDate: _toDate,
+      title: "",
+     
     );
   }
-  
-  // تبدیل داده به فرمت چارت
-  final chartSeries = <ChartSeriesData>[];
-  final colors = [
-    const Color(0xFF3B82F6),
-    const Color(0xFF22C55E),
-    const Color(0xFFEF4444),
-    const Color(0xFFEAB308),
-    const Color(0xFF8B5CF6),
-    const Color(0xFF06B6D4),
-    const Color(0xFFF97316),
-    const Color(0xFFEC4899),
-  ];
-  
-  for (var i = 0; i<  seriesData.length; i++) {
-    final s = seriesData[i];
-    final points = (s['dataPoints'] as List?)?.map((p) {
-      return ChartDataPoint(
-        timestamp: DateTime.parse(p['timestamp'] as String),
-        value: (p['value'] as num).toDouble(),
-      );
-    }).toList() ?? [];
-    
-    chartSeries.add(ChartSeriesData(
-      id: s['id'] ?? 'unknown',
-      label: s['label'] ?? 'نامشخص',
-      unit: s['unit'] ?? '',
-      points: points,
-      color: colors[i % colors.length],
-    ));
-  }
-  
-  return PersianChart(
-    seriesList: chartSeries,
-    fromDate: _fromDate,
-    toDate: _toDate,
-    title:"",
-    onPointTap: (point, series) {
-      // اختیاری: کاری انجام دهید وقتی روی نقطه کلیک شد
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${series.label}: ${PersianUtils.formatNumber(point.value)} ${series.unit}\n'
-            '${PersianUtils.formatDateTime(point.timestamp)}',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    },
-  );
-}
 
   Color _chartColor(int index) {
     const colors = [
@@ -948,7 +1194,26 @@ Widget _buildChartViewNew() {
     return colors[index % colors.length];
   }
 
+  // ============ Alarm VIEW ============
+  Widget _buildAlarmsView() {
+    if (_alarmsLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return ReportAlarmsView(
+      alarms: _alarms,
+      onAcknowledge: _acknowledgeAlarm,
+      onRefresh: _loadAlarms,
+    );
+  }
   // ============ STATS VIEW ============
+
+  // Widget _buildStatsViewNew() {
+  //   final series = (_reportData?['series'] as List?) ?? [];
+  //   return ReportStatsView(
+  //     seriesData: series.cast<Map<String, dynamic>>(),
+  //   );
+  // }
+
   Widget _buildStatsView() {
     final series = (_reportData?['series'] as List<dynamic>?) ?? [];
     if (series.isEmpty)
