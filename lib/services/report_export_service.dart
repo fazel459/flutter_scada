@@ -1,35 +1,49 @@
-import 'dart:typed_data';
-import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData, rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../utils/persian_utils.dart';
 import '../widgets/report_table_view.dart';
+import '../utils/file_saver_stub.dart'
+    if (dart.library.io) '../utils/file_saver_io.dart';
 
 class ReportExportService {
-  // کش فونت برای جلوگیری از لود مجدد
   static pw.Font? _regularFont;
   static pw.Font? _boldFont;
 
-  /// لود فونت فارسی از assets
+  /// لود فونت فارسی — با fallback
   static Future<void> _loadFonts() async {
-    if (_regularFont == null) {
-      final regularData = await rootBundle.load('assets/fonts/Vazirmatn-Regular.ttf');
-      _regularFont = pw.Font.ttf(regularData);
+    if (_regularFont != null) return;
+
+    // تلاش ۱: فایل محلی
+    try {
+      _regularFont = pw.Font.ttf(
+          await rootBundle.load('assests/fonts/Vazirmatn-Regular.ttf'));
+      _boldFont = pw.Font.ttf(
+          await rootBundle.load('assests/fonts/Vazirmatn-Bold.ttf'));
+      debugPrint('✅ فونت PDF جدول از assets لود شد');
+      return;
+    } catch (e) {
+      debugPrint('⚠️ لود فونت محلی ناموفق: $e');
     }
-    if (_boldFont == null) {
-      final boldData = await rootBundle.load('assets/fonts/Vazirmatn-Bold.ttf');
-      _boldFont = pw.Font.ttf(boldData);
+
+    // تلاش ۲: وزیرمتن آنلاین
+    try {
+      _regularFont = await PdfGoogleFonts.vazirmatnRegular();
+      _boldFont = await PdfGoogleFonts.vazirmatnBold();
+      debugPrint('✅ فونت PDF جدول از Google Fonts لود شد');
+    } catch (e) {
+      debugPrint('❌ هیچ فونت فارسی لود نشد: $e');
     }
   }
 
-  // ═══════════════════════════════════════════════
-  // CSV Export
-  // ═══════════════════════════════════════════════
+  // ═══════════════ CSV ═══════════════
 
   static String generateCsv(List<TableRowData> rows) {
     final buffer = StringBuffer();
-    buffer.write('\uFEFF');
+    buffer.write('\uFEFF'); // BOM برای اکسل
     buffer.writeln('ردیف,تگ,مقدار,واحد,تاریخ شمسی,وضعیت');
 
     for (var i = 0; i < rows.length; i++) {
@@ -43,23 +57,31 @@ class ReportExportService {
         '"${row.isAlarm ? 'آلارم' : 'عادی'}"',
       );
     }
-
     return buffer.toString();
   }
 
-  // ═══════════════════════════════════════════════
-  // PDF Export با فونت فارسی
-  // ═══════════════════════════════════════════════
+  /// ذخیره CSV — دسکتاپ: فایل / وب: کپی در کلیپ‌بورد
+  static Future<String?> saveCsv(List<TableRowData> rows) async {
+    final csv = generateCsv(rows);
+    final bytes = Uint8List.fromList(utf8.encode(csv));
+    final filename = 'table_report_${DateTime.now().millisecondsSinceEpoch}.csv';
+
+    final path = await saveFileToDownloads(bytes, filename);
+    if (path != null) return path;
+
+    await Clipboard.setData(ClipboardData(text: csv));
+    return null; // یعنی در کلیپ‌بورد کپی شد
+  }
+
+  // ═══════════════ PDF ═══════════════
 
   static Future<Uint8List> generatePdf(
     List<TableRowData> rows, {
     String title = 'گزارش داده‌های SCADA',
   }) async {
-    // لود فونت‌ها
     await _loadFonts();
 
     final pdf = pw.Document();
-
     const rowsPerPage = 28;
     final totalPages = (rows.length / rowsPerPage).ceil();
 
@@ -72,23 +94,19 @@ class ReportExportService {
         pw.Page(
           pageFormat: PdfPageFormat.a4.landscape,
           margin: const pw.EdgeInsets.all(20),
-          
-          // ✅ راست به چپ
           textDirection: pw.TextDirection.rtl,
-          
-          // ✅ فونت پیش‌فرض صفحه
-          theme: pw.ThemeData.withFont(
-            base: _regularFont!,
-            bold: _boldFont!,
-          ),
-          
+          theme: _regularFont != null
+              ? pw.ThemeData.withFont(
+                  base: _regularFont!, bold: _boldFont ?? _regularFont)
+              : null,
           build: (pw.Context ctx) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.stretch,
               children: [
                 // ── هدر ──
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                   decoration: pw.BoxDecoration(
                     color: PdfColor.fromHex('#1E293B'),
                     borderRadius: pw.BorderRadius.circular(8),
@@ -99,36 +117,27 @@ class ReportExportService {
                       pw.Text(
                         'صفحه ${PersianUtils.toPersian(page + 1)} از ${PersianUtils.toPersian(totalPages)}',
                         style: pw.TextStyle(
-                          font: _regularFont,
-                          fontSize: 9,
-                          color: PdfColors.grey400,
-                        ),
+                            font: _regularFont, fontSize: 9, color: PdfColors.grey400),
                       ),
                       pw.Column(
                         children: [
                           pw.Text(
                             title,
                             style: pw.TextStyle(
-                              font: _boldFont,
-                              fontSize: 16,
-                              color: PdfColors.white,
-                            ),
+                                font: _boldFont, fontSize: 16, color: PdfColors.white),
                           ),
                           pw.SizedBox(height: 2),
                           pw.Text(
-                            'تاریخ تولید: ${PersianUtils.formatDateTime(DateTime.now())}',
+                            'تاریخ تولید: ${PersianUtils.formatDateTime(DateTime.now())}   |   '
+                            '${PersianUtils.toPersian(rows.length)} ردیف',
                             style: pw.TextStyle(
-                              font: _regularFont,
-                              fontSize: 8,
-                              color: PdfColors.grey400,
-                            ),
+                                font: _regularFont, fontSize: 8, color: PdfColors.grey400),
                           ),
                         ],
                       ),
                     ],
                   ),
                 ),
-                
                 pw.SizedBox(height: 12),
 
                 // ── جدول ──
@@ -144,19 +153,12 @@ class ReportExportService {
                       5: pw.FixedColumnWidth(55),
                     },
                     children: [
-                      // هدر جدول
                       pw.TableRow(
                         decoration: pw.BoxDecoration(color: PdfColor.fromHex('#334155')),
-                        children: [
-                          _cell('#', bold: true, textColor: PdfColors.white),
-                          _cell('تگ', bold: true, textColor: PdfColors.white),
-                          _cell('مقدار', bold: true, textColor: PdfColors.white),
-                          _cell('واحد', bold: true, textColor: PdfColors.white),
-                          _cell('تاریخ شمسی', bold: true, textColor: PdfColors.white),
-                          _cell('وضعیت', bold: true, textColor: PdfColors.white),
-                        ],
+                        children: ['#', 'تگ', 'مقدار', 'واحد', 'تاریخ شمسی', 'وضعیت']
+                            .map((h) => _cell(h, bold: true, textColor: PdfColors.white))
+                            .toList(),
                       ),
-                      // ردیف‌ها
                       ...pageRows.asMap().entries.map((entry) {
                         final idx = startIdx + entry.key;
                         final row = entry.value;
@@ -196,14 +198,12 @@ class ReportExportService {
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text(
-                      'سیستم مانیتورینگ SCADA',
-                      style: pw.TextStyle(font: _regularFont, fontSize: 8, color: PdfColors.grey),
-                    ),
-                    pw.Text(
-                      'مجموع: ${PersianUtils.toPersian(rows.length)} ردیف',
-                      style: pw.TextStyle(font: _regularFont, fontSize: 8, color: PdfColors.grey),
-                    ),
+                    pw.Text('سیستم مانیتورینگ SCADA',
+                        style: pw.TextStyle(
+                            font: _regularFont, fontSize: 8, color: PdfColors.grey)),
+                    pw.Text('مجموع: ${PersianUtils.toPersian(rows.length)} ردیف',
+                        style: pw.TextStyle(
+                            font: _regularFont, fontSize: 8, color: PdfColors.grey)),
                   ],
                 ),
               ],
@@ -212,33 +212,32 @@ class ReportExportService {
         ),
       );
     }
-
     return pdf.save();
   }
 
-  // ═══════════════════════════════════════════════
-  // Print
-  // ═══════════════════════════════════════════════
-
-  static Future<void> printPdf(List<TableRowData> rows) async {
-    final pdfBytes = await generatePdf(rows);
-    await Printing.layoutPdf(onLayout: (_) async => pdfBytes);
+  /// چاپ — در ویندوز دیالوگ چاپ بومی باز می‌شود
+  static Future<void> printTable(List<TableRowData> rows, {String? title}) async {
+    final bytes = await generatePdf(rows, title: title ?? 'گزارش داده‌های SCADA');
+    await Printing.layoutPdf(onLayout: (_) async => bytes);
   }
 
-  // ═══════════════════════════════════════════════
-  // Share
-  // ═══════════════════════════════════════════════
+  /// ذخیره PDF — دسکتاپ: Downloads / بقیه: دیالوگ اشتراک
+  static Future<String?> savePdf(List<TableRowData> rows, {String? title}) async {
+    final bytes = await generatePdf(rows, title: title ?? 'گزارش داده‌های SCADA');
+    final filename = 'table_report_${DateTime.now().millisecondsSinceEpoch}.pdf';
 
-  static Future<void> sharePdf(List<TableRowData> rows) async {
-    final pdfBytes = await generatePdf(rows);
-    await Printing.sharePdf(
-      bytes: pdfBytes,
-      filename: 'scada_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
+    final path = await saveFileToDownloads(bytes, filename);
+    if (path != null) return path;
+
+    await Printing.sharePdf(bytes: bytes, filename: filename);
+    return null;
   }
 
-  // ─── Helper ───
+  // ── سازگاری با کدهای قبلی report_screen ──
+  static Future<void> printPdf(List<TableRowData> rows) => printTable(rows);
+  static Future<void> sharePdf(List<TableRowData> rows) async => savePdf(rows);
 
+  // ─── سلول جدول PDF ───
   static pw.Widget _cell(
     String text, {
     bool bold = false,
@@ -249,7 +248,7 @@ class ReportExportService {
       child: pw.Text(
         text,
         style: pw.TextStyle(
-          font: bold ? _boldFont : _regularFont,   // ✅ فونت فارسی
+          font: bold ? (_boldFont ?? _regularFont) : _regularFont,
           fontSize: 9,
           fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
           color: textColor,
@@ -260,3 +259,4 @@ class ReportExportService {
     );
   }
 }
+

@@ -1,11 +1,12 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;   // ← جدید
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'dart:io';
 import '../utils/persian_utils.dart';
+import '../utils/file_saver_stub.dart'                     // ← جدید
+    if (dart.library.io) '../utils/file_saver_io.dart';
 
 /// مدل آلارم
 class AlarmData {
@@ -163,21 +164,437 @@ class _ReportAlarmsViewState extends State<ReportAlarmsView> {
         _buildFilterBar(),
         
         // لیست آلارم‌ها
-        Expanded(
-          child: widget.alarms.isEmpty
-              ? _buildEmptyState()
-              : _filteredAlarms.isEmpty
-                  ? const Center(child: Text('نتیجه‌ای یافت نشد', style: TextStyle(color: Colors.white38)))
-                  : RefreshIndicator(
-                      onRefresh: widget.onRefresh ?? () async {},
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _filteredAlarms.length,
-                        itemBuilder: (context, index) => _buildAlarmCard(_filteredAlarms[index]),
-                      ),
+                Expanded(
+          child: Stack(
+            children: [
+              widget.alarms.isEmpty
+                  ? _buildEmptyState()
+                  : _filteredAlarms.isEmpty
+                      ? const Center(
+                          child: Text('نتیجه‌ای یافت نشد',
+                              style: TextStyle(
+                                  fontFamily: 'Vazirmatn', color: Colors.white38)))
+                      : RefreshIndicator(
+                          onRefresh: widget.onRefresh ?? () async {},
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(12),
+                            itemCount: _filteredAlarms.length,
+                            itemBuilder: (context, index) =>
+                                _buildAlarmCard(_filteredAlarms[index]),
+                          ),
+                        ),
+              if (_isExporting)
+                Container(
+                  color: Colors.black54,
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: Colors.white),
+                        SizedBox(height: 12),
+                        Text('در حال آماده‌سازی PDF...',
+                            style: TextStyle(
+                                fontFamily: 'Vazirmatn', color: Colors.white)),
+                      ],
                     ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ],
+    );
+  }
+// ═══════════════════════════════════════════════════════════
+  //  چاپ و خروجی PDF آلارم‌ها — بدون File، با فونت فارسی
+  // ═══════════════════════════════════════════════════════════
+
+  pw.Font? _pdfRegular;
+  pw.Font? _pdfBold;
+  bool _isExporting = false;
+
+  Future<void> _loadAlarmPdfFonts() async {
+    if (_pdfRegular != null) return;
+    try {
+      _pdfRegular = pw.Font.ttf(
+          await rootBundle.load('assets/fonts/Vazirmatn-Regular.ttf'));
+      _pdfBold = pw.Font.ttf(
+          await rootBundle.load('assets/fonts/Vazirmatn-Bold.ttf'));
+      debugPrint('✅ فونت PDF آلارم از assets لود شد');
+      return;
+    } catch (e) {
+      debugPrint('⚠️ فونت محلی آلارم لود نشد: $e');
+    }
+    try {
+      _pdfRegular = await PdfGoogleFonts.vazirmatnRegular();
+      _pdfBold = await PdfGoogleFonts.vazirmatnBold();
+      debugPrint('✅ فونت PDF آلارم از Google Fonts لود شد');
+    } catch (e) {
+      debugPrint('❌ هیچ فونت فارسی لود نشد: $e');
+    }
+  }
+
+  Future<Uint8List?> _buildAlarmPdfBytes() async {
+    if (_filteredAlarms.isEmpty) return null;
+    await _loadAlarmPdfFonts();
+
+    final pdf = pw.Document();
+    const rowsPerPage = 22;
+    final totalPages = (_filteredAlarms.length / rowsPerPage).ceil();
+    final now = DateTime.now();
+
+    for (var page = 0; page < totalPages; page++) {
+      final start = page * rowsPerPage;
+      final end = (start + rowsPerPage).clamp(0, _filteredAlarms.length);
+      final pageAlarms = _filteredAlarms.sublist(start, end);
+
+      pdf.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4.landscape,
+          margin: const pw.EdgeInsets.all(20),
+          textDirection: pw.TextDirection.rtl,
+          theme: _pdfRegular != null
+              ? pw.ThemeData.withFont(
+                  base: _pdfRegular!, bold: _pdfBold ?? _pdfRegular)
+              : null,
+          build: (pw.Context ctx) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+              children: [
+                _pdfHeader(now, page, totalPages),
+                pw.SizedBox(height: 10),
+                _pdfStatsStrip(),
+                pw.SizedBox(height: 12),
+                pw.Expanded(child: _pdfTable(pageAlarms, start)),
+                _pdfFooter(),
+              ],
+            );
+          },
+        ),
+      );
+    }
+    return pdf.save();
+  }
+
+  // ─── هدر PDF با راهنمای شدت ───
+  pw.Widget _pdfHeader(DateTime now, int page, int totalPages) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: pw.BoxDecoration(
+        color: PdfColor.fromHex('#1E293B'),
+        borderRadius: pw.BorderRadius.circular(8),
+      ),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'صفحه ${PersianUtils.toPersian(page + 1)} از ${PersianUtils.toPersian(totalPages)}',
+                style: pw.TextStyle(
+                    font: _pdfRegular, fontSize: 9, color: PdfColors.grey400),
+              ),
+              pw.SizedBox(height: 5),
+              pw.Row(
+                children: [
+                  _pdfLegendDot('#EF4444', 'بحرانی'),
+                  pw.SizedBox(width: 10),
+                  _pdfLegendDot('#F59E0B', 'هشدار'),
+                  pw.SizedBox(width: 10),
+                  _pdfLegendDot('#22C55E', 'تأیید شده'),
+                ],
+              ),
+            ],
+          ),
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              pw.Text(
+                'گزارش آلارم‌ها',
+                style: pw.TextStyle(
+                    font: _pdfBold, fontSize: 16, color: PdfColors.white),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Text(
+                'تولید: ${PersianUtils.formatDateTime(now)}   |   '
+                '${PersianUtils.toPersian(_filteredAlarms.length)} آلارم',
+                style: pw.TextStyle(
+                    font: _pdfRegular, fontSize: 8, color: PdfColors.grey400),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _pdfLegendDot(String hex, String label) {
+    return pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        pw.Container(
+          width: 7,
+          height: 7,
+          decoration: pw.BoxDecoration(
+            color: PdfColor.fromHex(hex),
+            shape: pw.BoxShape.circle,
+          ),
+        ),
+        pw.SizedBox(width: 3),
+        pw.Text(
+          label,
+          style: pw.TextStyle(
+              font: _pdfRegular, fontSize: 8, color: PdfColors.grey300),
+        ),
+      ],
+    );
+  }
+
+  // ─── نوار آمار چهارگانه ───
+  pw.Widget _pdfStatsStrip() {
+    return pw.Row(
+      children: [
+        _pdfStatBox('کل آلارم‌ها', PersianUtils.toPersian(_totalCount),
+            PdfColors.blue600, PdfColors.blue50),
+        pw.SizedBox(width: 8),
+        _pdfStatBox('فعال', PersianUtils.toPersian(_activeCount),
+            PdfColors.red600, PdfColors.red50),
+        pw.SizedBox(width: 8),
+        _pdfStatBox('تأیید شده', PersianUtils.toPersian(_acknowledgedCount),
+            PdfColors.green600, PdfColors.green50),
+        pw.SizedBox(width: 8),
+        _pdfStatBox('بحرانی', PersianUtils.toPersian(_criticalCount),
+            PdfColors.orange600, PdfColors.orange50),
+      ],
+    );
+  }
+
+  pw.Widget _pdfStatBox(
+      String label, String value, PdfColor main, PdfColor light) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        decoration: pw.BoxDecoration(
+          color: light,
+          borderRadius: pw.BorderRadius.circular(6),
+          border: pw.Border.all(color: main, width: 0.6),
+        ),
+        child: pw.Column(
+          children: [
+            pw.Text(label,
+                style: pw.TextStyle(font: _pdfRegular, fontSize: 8, color: main)),
+            pw.SizedBox(height: 2),
+            pw.Text(value,
+                style: pw.TextStyle(
+                    font: _pdfBold ?? _pdfRegular,
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                    color: main)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── جدول آلارم‌ها با رنگ‌بندی شدت ───
+  pw.Widget _pdfTable(List<AlarmData> alarms, int startIndex) {
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+      columnWidths: const {
+        0: pw.FixedColumnWidth(30),
+        1: pw.FlexColumnWidth(3),
+        2: pw.FlexColumnWidth(2),
+        3: pw.FlexColumnWidth(1.5),
+        4: pw.FlexColumnWidth(1.5),
+        5: pw.FlexColumnWidth(1.5),
+        6: pw.FlexColumnWidth(3),
+      },
+      children: [
+        pw.TableRow(
+          decoration: pw.BoxDecoration(color: PdfColor.fromHex('#334155')),
+          children: ['#', 'تگ', 'نوع آلارم', 'مقدار', 'حد مجاز', 'وضعیت', 'تاریخ شمسی']
+              .map((h) => pw.Padding(
+                    padding: const pw.EdgeInsets.all(6),
+                    child: pw.Text(
+                      h,
+                      style: pw.TextStyle(
+                          font: _pdfBold, fontSize: 10, color: PdfColors.white),
+                      textAlign: pw.TextAlign.center,
+                    ),
+                  ))
+              .toList(),
+        ),
+        ...alarms.asMap().entries.map((entry) {
+          final idx = startIndex + entry.key;
+          final alarm = entry.value;
+
+          // پس‌زمینه بر اساس شدت و وضعیت
+          final PdfColor bg;
+          if (!alarm.acknowledged && alarm.severityLevel == 3) {
+            bg = PdfColors.red100;      // بحرانی فعال
+          } else if (!alarm.acknowledged) {
+            bg = PdfColors.orange50;    // هشدار فعال
+          } else {
+            bg = idx.isEven ? PdfColors.grey50 : PdfColors.white;
+          }
+
+          final sevColor = alarm.severityLevel == 3
+              ? PdfColors.red700
+              : PdfColors.orange800;
+
+          return pw.TableRow(
+            decoration: pw.BoxDecoration(color: bg),
+            children: [
+              _alarmCell(PersianUtils.toPersian(idx + 1)),
+              _alarmCell(alarm.tag, bold: true),
+              _alarmCell(alarm.alarmTypeLabel, color: sevColor),
+              _alarmCell(
+                PersianUtils.formatNumber(alarm.value),
+                color: sevColor,
+                bold: true,
+              ),
+              _alarmCell(PersianUtils.formatNumber(alarm.threshold)),
+              _alarmCell(
+                alarm.acknowledged ? 'تأیید شده' : 'فعال',
+                color: alarm.acknowledged ? PdfColors.green700 : PdfColors.red700,
+                bold: !alarm.acknowledged,
+              ),
+              _alarmCell(PersianUtils.formatDateTime(alarm.createdAt)),
+            ],
+          );
+        }),
+      ],
+    );
+  }
+
+  pw.Widget _alarmCell(String text, {bool bold = false, PdfColor? color}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          font: bold ? (_pdfBold ?? _pdfRegular) : _pdfRegular,
+          fontSize: 9,
+          color: color ?? PdfColors.grey800,
+        ),
+        textAlign: pw.TextAlign.center,
+        textDirection: pw.TextDirection.rtl,
+      ),
+    );
+  }
+
+  pw.Widget _pdfFooter() {
+    return pw.Column(
+      children: [
+        pw.Divider(color: PdfColors.grey300),
+        pw.SizedBox(height: 4),
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            pw.Text(
+              'سیستم مانیتورینگ SCADA',
+              style: pw.TextStyle(
+                  font: _pdfRegular, fontSize: 8, color: PdfColors.grey),
+            ),
+            pw.Text(
+              'مجموع: ${PersianUtils.toPersian(_filteredAlarms.length)} آلارم',
+              style: pw.TextStyle(
+                  font: _pdfRegular, fontSize: 8, color: PdfColors.grey),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ─── اکشن‌ها ───
+
+  Widget _actionButton(
+    IconData icon,
+    String tooltip,
+    VoidCallback onTap, {
+    bool showSpinner = false,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      textStyle: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 11),
+      child: InkWell(
+        onTap: _isExporting ? null : onTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black26,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: showSpinner
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white70),
+                )
+              : Icon(icon, color: Colors.white70, size: 18),
+        ),
+      ),
+    );
+  }
+
+  /// چاپ — در ویندوز دیالوگ چاپ بومی باز می‌شود
+  Future<void> _printAlarms() async {
+    if (_filteredAlarms.isEmpty) {
+      _showExportMsg('آلارمی برای چاپ وجود ندارد', error: true);
+      return;
+    }
+    try {
+      final bytes = await _buildAlarmPdfBytes();
+      if (bytes == null) return;
+      await Printing.layoutPdf(onLayout: (_) async => bytes);
+    } catch (e) {
+      _showExportMsg('خطا در چاپ: $e', error: true);
+    }
+  }
+
+  /// PDF — دسکتاپ: ذخیره در Downloads / وب و موبایل: دیالوگ اشتراک
+  Future<void> _exportAlarmPdf() async {
+    if (_filteredAlarms.isEmpty) {
+      _showExportMsg('آلارمی برای خروجی وجود ندارد', error: true);
+      return;
+    }
+    setState(() => _isExporting = true);
+    try {
+      final bytes = await _buildAlarmPdfBytes();
+      if (bytes == null) return;
+
+      final filename = 'alarms_report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final path = await saveFileToDownloads(bytes, filename);
+
+      if (path != null) {
+        _showExportMsg('PDF آلارم‌ها ذخیره شد:\n$path');
+      } else {
+        await Printing.sharePdf(bytes: bytes, filename: filename);
+        _showExportMsg('PDF آماده ارسال شد');
+      }
+    } catch (e) {
+      _showExportMsg('خطا در ایجاد PDF: $e', error: true);
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  void _showExportMsg(String message, {bool error = false}) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 12),
+          textDirection: TextDirection.rtl,
+        ),
+        backgroundColor: error ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 5),
+      ),
     );
   }
 
@@ -197,17 +614,37 @@ class _ReportAlarmsViewState extends State<ReportAlarmsView> {
           _buildStatChip('تأیید شده', _acknowledgedCount, Colors.green),
           const SizedBox(width: 12),
           _buildStatChip('بحرانی', _criticalCount, Colors.deepOrange, pulse: _criticalCount > 0),
+
           const Spacer(),
           
           // Export
-          ElevatedButton.icon(
-            onPressed: _exportAsPdf,
-            icon: const Icon(Icons.picture_as_pdf, size: 16),
-            label: const Text('PDF', style: TextStyle(fontSize: 11)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade700,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                   // ── نشانگر زنده محدوده خروجی ──
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Container(
+              key: ValueKey(_filteredAlarms.length),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'خروجی: ${PersianUtils.toPersian(_filteredAlarms.length)} آلارم فیلترشده',
+                style: const TextStyle(
+                    fontFamily: 'Vazirmatn', fontSize: 10, color: Color(0xFF94A3B8)),
+              ),
             ),
+          ),
+          const SizedBox(width: 12),
+
+          // ── چاپ و PDF ──
+          _actionButton(Icons.print, 'چاپ آلارم‌ها', _printAlarms),
+          const SizedBox(width: 6),
+          _actionButton(
+            Icons.picture_as_pdf,
+            'خروجی PDF',
+            _exportAlarmPdf,
+            showSpinner: _isExporting,
           ),
         ],
       ),
@@ -594,57 +1031,7 @@ class _ReportAlarmsViewState extends State<ReportAlarmsView> {
     );
   }
 
-  Future<void> _exportAsPdf() async {
-    try {
-      final pdf = pw.Document();
-      
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4.landscape,
-          build: (context) => [
-            pw.Text('گزارش آلارم‌ها', style: const pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 16),
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey),
-              children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF334155)),
-                  children: ['وضعیت', 'حد مجاز', 'مقدار', 'نوع', 'تگ', 'زمان'].map((h) => 
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(6),
-                      child: pw.Text(h, style: const pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10), textAlign: pw.TextAlign.center),
-                    )
-                  ).toList(),
-                ),
-                ..._filteredAlarms.map((a) => pw.TableRow(
-                  children: [
-                    a.acknowledged ? 'تأیید شده' : 'فعال',
-                    PersianUtils.formatNumber(a.threshold),
-                    PersianUtils.formatNumber(a.value),
-                    a.alarmTypeLabel,
-                    a.tag,
-                    PersianUtils.formatDateTime(a.createdAt),
-                  ].map((c) => pw.Padding(
-                    padding: const pw.EdgeInsets.all(4),
-                    child: pw.Text(c, style: const pw.TextStyle(fontSize: 9), textAlign: pw.TextAlign.center),
-                  )).toList(),
-                )),
-              ],
-            ),
-          ],
-        ),
-      );
-
-      final dir = await getTemporaryDirectory();
-      final file = File('${dir.path}/alarms_${DateTime.now().millisecondsSinceEpoch}.pdf');
-      await file.writeAsBytes(await pdf.save());
-      await Share.shareXFiles([XFile(file.path)], text: 'گزارش آلارم‌ها');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطا: $e'), backgroundColor: Colors.red),
-      );
-    }
-  }
+ 
 
   @override
   void dispose() {

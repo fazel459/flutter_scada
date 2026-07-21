@@ -421,10 +421,10 @@ void _doCsvExport(List<TableRowData> rows) {
         title: const Text('📊 Reports',
             style: TextStyle(color: Colors.white, fontSize: 18)),
         actions: [
-          IconButton(
-              icon: const Icon(Icons.file_download, color: Colors.white70),
-              onPressed: _exportCsv,
-              tooltip: 'Export CSV'),
+          // IconButton(
+          //     icon: const Icon(Icons.file_download, color: Colors.white70),
+          //     onPressed: _exportCsv,
+          //     tooltip: 'Export CSV'),
           IconButton(
               icon: const Icon(Icons.refresh, color: Colors.white70),
               onPressed: _loadData,

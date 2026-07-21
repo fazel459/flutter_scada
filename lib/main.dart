@@ -4,14 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_scada/screens/main_shell.dart';
 import 'package:flutter_scada/utils/persian-datetime-picker/lib/persian_datetime_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 import 'providers/providers.dart';
 import 'screens/auth_screen.dart';
 import 'models/user_model.dart';
-import 'package:flutter/material.dart';
-import 'utils/app_theme.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('scada_token');
   final userJson = prefs.getString('scada_user');
@@ -19,6 +20,18 @@ void main() async {
   String? initialToken;
   User? initialUser;
 
+  //برای ویندوز
+  // await windowManager.waitUntilReadyToShow(
+  //   const WindowOptions(
+  //     size: Size(1400, 850),
+  //     minimumSize: Size(1100, 700),
+  //     title: 'سیستم SCADA',
+  //   ),
+  //   () async {
+  //     await windowManager.show();
+  //     await windowManager.focus();
+  //   },
+  // );
   if (token != null && userJson != null) {
     try {
       initialToken = token;

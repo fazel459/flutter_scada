@@ -12,11 +12,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_scada/utils/persian_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
-import '../utils/persian_utils.dart';
+import '../utils/file_saver_stub.dart'
+    if (dart.library.io) '../utils/file_saver_io.dart';
 
 // ─────────────── مدل‌های داده ───────────────
 
@@ -48,10 +49,9 @@ class ChartSeriesData {
       points.isEmpty ? 0 : points.map((p) => p.value).reduce(math.min);
   double get maxValue =>
       points.isEmpty ? 0 : points.map((p) => p.value).reduce(math.max);
-  double get avgValue =>
-      points.isEmpty
-          ? 0
-          : points.map((p) => p.value).reduce((a, b) => a + b) / points.length;
+  double get avgValue => points.isEmpty
+      ? 0
+      : points.map((p) => p.value).reduce((a, b) => a + b) / points.length;
 }
 
 // ─────────────── ویجت اصلی ───────────────
@@ -63,12 +63,12 @@ class PersianChart extends StatefulWidget {
   final String title;
 
   const PersianChart({
-    Key? key,
+    super.key,
     required this.seriesList,
     required this.fromDate,
     required this.toDate,
     this.title = 'نمودار گزارش',
-  }) : super(key: key);
+  });
 
   @override
   State<PersianChart> createState() => _PersianChartState();
@@ -129,8 +129,10 @@ class _PersianChartState extends State<PersianChart> {
     _minY = minVal - padding;
     _maxY = maxVal + padding;
 
-    _fullMinX = _minX; _fullMaxX = _maxX;
-    _fullMinY = _minY; _fullMaxY = _maxY;
+    _fullMinX = _minX;
+    _fullMaxX = _maxX;
+    _fullMinY = _minY;
+    _fullMaxY = _maxY;
   }
 
   // ═══════════════ زوم و پن ═══════════════
@@ -159,8 +161,10 @@ class _PersianChartState extends State<PersianChart> {
 
   void _resetZoom() {
     setState(() {
-      _minX = _fullMinX; _maxX = _fullMaxX;
-      _minY = _fullMinY; _maxY = _fullMaxY;
+      _minX = _fullMinX;
+      _maxX = _fullMaxX;
+      _minY = _fullMinY;
+      _maxY = _fullMaxY;
     });
   }
 
@@ -190,8 +194,10 @@ class _PersianChartState extends State<PersianChart> {
         dyData = _fullMaxY + rangeY * 0.2 - _maxY;
       }
 
-      _minX += dxData; _maxX += dxData;
-      _minY += dyData; _maxY += dyData;
+      _minX += dxData;
+      _maxX += dxData;
+      _minY += dyData;
+      _maxY += dyData;
     });
   }
 
@@ -234,7 +240,8 @@ class _PersianChartState extends State<PersianChart> {
                         CircularProgressIndicator(color: Colors.white),
                         SizedBox(height: 16),
                         Text('در حال آماده‌سازی...',
-                            style: TextStyle(fontFamily: 'Vazirmatn', color: Colors.white)),
+                            style: TextStyle(
+                                fontFamily: 'Vazirmatn', color: Colors.white)),
                       ],
                     ),
                   ),
@@ -304,7 +311,7 @@ class _PersianChartState extends State<PersianChart> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: _zoomPercent > 100
-                  ? Colors.blue.withOpacity(0.15)
+                  ? Colors.blue.withValues(alpha: 0.15)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
             ),
@@ -314,7 +321,8 @@ class _PersianChartState extends State<PersianChart> {
                 fontFamily: 'Vazirmatn',
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: _zoomPercent > 100 ? Colors.blue : const Color(0xFF64748B),
+                color:
+                    _zoomPercent > 100 ? Colors.blue : const Color(0xFF64748B),
               ),
             ),
           ),
@@ -398,7 +406,8 @@ class _PersianChartState extends State<PersianChart> {
                   ),
                   child: series.isVisible
                       ? null
-                      : const Icon(Icons.visibility_off, size: 12, color: Colors.white54),
+                      : const Icon(Icons.visibility_off,
+                          size: 12, color: Colors.white54),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -407,7 +416,8 @@ class _PersianChartState extends State<PersianChart> {
                     fontFamily: 'Vazirmatn',
                     color: series.isVisible ? Colors.white70 : Colors.white38,
                     fontSize: 11,
-                    decoration: series.isVisible ? null : TextDecoration.lineThrough,
+                    decoration:
+                        series.isVisible ? null : TextDecoration.lineThrough,
                   ),
                 ),
               ],
@@ -477,7 +487,6 @@ class _PersianChartState extends State<PersianChart> {
       maxY: _maxY,
       clipData: const FlClipData.all(),
       backgroundColor: const Color(0xFF0A0F1A),
-
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
@@ -485,13 +494,16 @@ class _PersianChartState extends State<PersianChart> {
         horizontalInterval: intervalY,
         verticalInterval: intervalX,
         getDrawingHorizontalLine: (v) => const FlLine(
-          color: Color(0xFF1E293B), strokeWidth: 1, dashArray: [4, 6],
+          color: Color(0xFF1E293B),
+          strokeWidth: 1,
+          dashArray: [4, 6],
         ),
         getDrawingVerticalLine: (v) => const FlLine(
-          color: Color(0xFF17223B), strokeWidth: 1, dashArray: [4, 6],
+          color: Color(0xFF17223B),
+          strokeWidth: 1,
+          dashArray: [4, 6],
         ),
       ),
-
       borderData: FlBorderData(
         show: true,
         border: const Border(
@@ -499,10 +511,10 @@ class _PersianChartState extends State<PersianChart> {
           bottom: BorderSide(color: Color(0xFF475569)),
         ),
       ),
-
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles:
+            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
@@ -542,12 +554,10 @@ class _PersianChartState extends State<PersianChart> {
           ),
         ),
       ),
-
       lineTouchData: LineTouchData(
         enabled: true,
         handleBuiltInTouches: true,
         touchTooltipData: LineTouchTooltipData(
-
           tooltipPadding: const EdgeInsets.all(10),
           tooltipBorder: const BorderSide(color: Color(0xFF475569)),
           getTooltipItems: (touchedSpots) {
@@ -569,15 +579,20 @@ class _PersianChartState extends State<PersianChart> {
                     ),
                   ),
                   TextSpan(
-                    text: '${PersianUtils.formatNumber(spot.y)} ${series.unit}\n',
+                    text:
+                        '${PersianUtils.formatNumber(spot.y)} ${series.unit}\n',
                     style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Colors.white, fontSize: 11,
+                      fontFamily: 'Vazirmatn',
+                      color: Colors.white,
+                      fontSize: 11,
                     ),
                   ),
                   TextSpan(
                     text: PersianUtils.formatDateTime(date),
                     style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Color(0xFF94A3B8), fontSize: 10,
+                      fontFamily: 'Vazirmatn',
+                      color: Color(0xFF94A3B8),
+                      fontSize: 10,
                     ),
                   ),
                 ],
@@ -588,10 +603,12 @@ class _PersianChartState extends State<PersianChart> {
         getTouchedSpotIndicator: (barData, spotIndexes) {
           return spotIndexes.map((index) {
             return TouchedSpotIndicatorData(
-              const FlLine(color: Colors.white24, strokeWidth: 1, dashArray: [4, 4]),
+              const FlLine(
+                  color: Colors.white24, strokeWidth: 1, dashArray: [4, 4]),
               FlDotData(
                 show: true,
-                getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                getDotPainter: (spot, percent, bar, index) =>
+                    FlDotCirclePainter(
                   radius: 5,
                   color: bar.color ?? Colors.blue,
                   strokeWidth: 2,
@@ -602,7 +619,6 @@ class _PersianChartState extends State<PersianChart> {
           }).toList();
         },
       ),
-
       lineBarsData: visibleSeries.map((series) {
         final points = _downsamplePoints(series.points, maxPoints: 600);
         return LineChartBarData(
@@ -630,8 +646,8 @@ class _PersianChartState extends State<PersianChart> {
             show: true,
             gradient: LinearGradient(
               colors: [
-                series.color.withOpacity(0.25),
-                series.color.withOpacity(0.0),
+                series.color.withValues(alpha: 0.25),
+                series.color.withValues(alpha: 0.0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -639,7 +655,6 @@ class _PersianChartState extends State<PersianChart> {
           ),
         );
       }).toList(),
-
       extraLinesData: ExtraLinesData(
         horizontalLines: _buildMinMaxLines(visibleSeries),
       ),
@@ -670,27 +685,31 @@ class _PersianChartState extends State<PersianChart> {
 
       lines.add(HorizontalLine(
         y: series.minValue,
-        color: series.color.withOpacity(0.4),
+        color: series.color.withValues(alpha: 0.4),
         strokeWidth: 1,
         dashArray: [8, 4],
         label: HorizontalLineLabel(
           show: true,
           alignment: Alignment.topRight,
-          style: TextStyle(fontFamily: 'Vazirmatn', color: series.color, fontSize: 9),
-          labelResolver: (line) => 'حداقل: ${PersianUtils.formatNumber(line.y)}',
+          style: TextStyle(
+              fontFamily: 'Vazirmatn', color: series.color, fontSize: 9),
+          labelResolver: (line) =>
+              'حداقل: ${PersianUtils.formatNumber(line.y)}',
         ),
       ));
 
       lines.add(HorizontalLine(
         y: series.maxValue,
-        color: series.color.withOpacity(0.4),
+        color: series.color.withValues(alpha: 0.4),
         strokeWidth: 1,
         dashArray: [8, 4],
         label: HorizontalLineLabel(
           show: true,
           alignment: Alignment.bottomRight,
-          style: TextStyle(fontFamily: 'Vazirmatn', color: series.color, fontSize: 9),
-          labelResolver: (line) => 'حداکثر: ${PersianUtils.formatNumber(line.y)}',
+          style: TextStyle(
+              fontFamily: 'Vazirmatn', color: series.color, fontSize: 9),
+          labelResolver: (line) =>
+              'حداکثر: ${PersianUtils.formatNumber(line.y)}',
         ),
       ));
     }
@@ -720,21 +739,30 @@ class _PersianChartState extends State<PersianChart> {
               Container(
                 width: 8,
                 height: 8,
-                decoration: BoxDecoration(color: series.color, shape: BoxShape.circle),
+                decoration:
+                    BoxDecoration(color: series.color, shape: BoxShape.circle),
               ),
               const SizedBox(width: 6),
               Text('${series.label}: ',
                   style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Colors.white54, fontSize: 10)),
+                      fontFamily: 'Vazirmatn',
+                      color: Colors.white54,
+                      fontSize: 10)),
               Text('حداقل: ${PersianUtils.formatNumber(series.minValue)} | ',
                   style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Colors.cyan, fontSize: 10)),
+                      fontFamily: 'Vazirmatn',
+                      color: Colors.cyan,
+                      fontSize: 10)),
               Text('حداکثر: ${PersianUtils.formatNumber(series.maxValue)} | ',
                   style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Colors.orange, fontSize: 10)),
+                      fontFamily: 'Vazirmatn',
+                      color: Colors.orange,
+                      fontSize: 10)),
               Text('میانگین: ${PersianUtils.formatNumber(series.avgValue)}',
                   style: const TextStyle(
-                      fontFamily: 'Vazirmatn', color: Colors.green, fontSize: 10)),
+                      fontFamily: 'Vazirmatn',
+                      color: Colors.green,
+                      fontSize: 10)),
             ],
           );
         }).toList(),
@@ -771,10 +799,20 @@ class _PersianChartState extends State<PersianChart> {
     pw.Font? bold;
     try {
       regular = pw.Font.ttf(
-          await rootBundle.load('assets/fonts/Vazirmatn-Regular.ttf'));
+          await rootBundle.load('assests/fonts/Vazirmatn-Regular.ttf'));
       bold = pw.Font.ttf(
-          await rootBundle.load('assets/fonts/Vazirmatn-Bold.ttf'));
-    } catch (_) {}
+          await rootBundle.load('assests/fonts/Vazirmatn-Bold.ttf'));
+    } catch (_) {
+      debugPrint(' هیچ فونت فارسی‌ای لود نشد: ادامه بدون فونت فارسی');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(' هیچ فونت فارسی‌ای لود نشد: ادامه بدون فونت فارسی',
+              style: TextStyle(fontFamily: 'Vazirmatn')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
 
     final pdf = pw.Document();
     final image = pw.MemoryImage(imageBytes);
@@ -815,7 +853,9 @@ class _PersianChartState extends State<PersianChart> {
                       '${PersianUtils.formatFull(widget.toDate)}   |   '
                       '${PersianUtils.toPersian(widget.seriesList.length)} تگ',
                       style: pw.TextStyle(
-                        font: regular, fontSize: 11, color: PdfColors.grey400,
+                        font: regular,
+                        fontSize: 11,
+                        color: PdfColors.grey400,
                       ),
                     ),
                   ],
@@ -833,17 +873,21 @@ class _PersianChartState extends State<PersianChart> {
 
               // جدول آمار
               pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
+                border:
+                    pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
                 children: [
                   pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColor.fromHex('#334155')),
+                    decoration:
+                        pw.BoxDecoration(color: PdfColor.fromHex('#334155')),
                     children: ['تگ', 'واحد', 'حداقل', 'حداکثر', 'میانگین']
                         .map((h) => pw.Padding(
                               padding: const pw.EdgeInsets.all(6),
                               child: pw.Text(
                                 h,
                                 style: pw.TextStyle(
-                                  font: bold, fontSize: 10, color: PdfColors.white,
+                                  font: bold,
+                                  fontSize: 10,
+                                  color: PdfColors.white,
                                 ),
                                 textAlign: pw.TextAlign.center,
                               ),
@@ -864,7 +908,8 @@ class _PersianChartState extends State<PersianChart> {
                                       padding: const pw.EdgeInsets.all(5),
                                       child: pw.Text(
                                         c,
-                                        style: pw.TextStyle(font: regular, fontSize: 9),
+                                        style: pw.TextStyle(
+                                            font: regular, fontSize: 9),
                                         textAlign: pw.TextAlign.center,
                                       ),
                                     ))
@@ -877,7 +922,8 @@ class _PersianChartState extends State<PersianChart> {
               // فوتر
               pw.Text(
                 'تاریخ تولید: ${PersianUtils.formatDateTime(DateTime.now())}   |   سیستم SCADA',
-                style: pw.TextStyle(font: regular, fontSize: 9, color: PdfColors.grey),
+                style: pw.TextStyle(
+                    font: regular, fontSize: 9, color: PdfColors.grey),
               ),
             ],
           );
@@ -890,6 +936,7 @@ class _PersianChartState extends State<PersianChart> {
 
   /// ذخیره تصویر (داخل PDF — بدون نیاز به فایل)
   Future<void> _exportAsImage() async {
+    setState(() => _isExporting = true);
     final imageBytes = await _captureChart();
     if (imageBytes == null) {
       _showError('خطا در ایجاد تصویر');
@@ -906,12 +953,21 @@ class _PersianChartState extends State<PersianChart> {
           ),
         ),
       );
-      await Printing.sharePdf(
-        bytes: await pdf.save(),
-        filename: 'scada_chart_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      );
+      final bytes = await pdf.save();
+      final filename =
+          'scada_report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
+      final savedPath = await saveFileToDownloads(bytes, filename);
+
+      if (savedPath != null) {
+        _showSuccess('PDF ذخیره شد:\n$savedPath');
+      } else {
+        await Printing.sharePdf(bytes: bytes, filename: filename);
+      }
     } catch (e) {
-      _showError('خطا در ذخیره: $e');
+      _showError('خطا در ایجاد PDF: $e');
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
     }
   }
 
@@ -924,12 +980,18 @@ class _PersianChartState extends State<PersianChart> {
         _showError('خطا در ایجاد PDF');
         return;
       }
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename: 'scada_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      );
+      final filename =
+          'scada_report_${DateTime.now().millisecondsSinceEpoch}.pdf';
+
+      final savedPath = await saveFileToDownloads(bytes, filename);
+
+      if (savedPath != null) {
+        _showSuccess('PDF ذخیره شد:\n$savedPath');
+      } else {
+        await Printing.sharePdf(bytes: bytes, filename: filename);
+      }
     } catch (e) {
-      _showError('خطا در ایجاد PDF: $e');
+      _showError(';خطا در ایجاد PDF: $e');
     } finally {
       if (mounted) setState(() => _isExporting = false);
     }
@@ -955,10 +1017,15 @@ class _PersianChartState extends State<PersianChart> {
         _showError('خطا در ایجاد فایل');
         return;
       }
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename: 'scada_chart_${DateTime.now().millisecondsSinceEpoch}.pdf',
-      );
+
+      final filename =
+          'scada_chart_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final savedPath = await saveFileToDownloads(bytes, filename);
+      if (savedPath != null) {
+        _showSuccess('فایل ذخیره شد:\n$savedPath');
+      } else {
+        await Printing.sharePdf(bytes: bytes, filename: filename);
+      }
     } catch (e) {
       _showError('خطا در اشتراک‌گذاری: $e');
     } finally {
@@ -966,12 +1033,32 @@ class _PersianChartState extends State<PersianChart> {
     }
   }
 
+// ── SnackBar موفقیت ──
+  void _showSuccess(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontFamily: 'Vazirmatn', fontSize: 12),
+          textDirection: TextDirection.rtl,
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'باشه',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message,
-            style: const TextStyle(fontFamily: 'Vazirmatn')),
+        content: Text(message, style: const TextStyle(fontFamily: 'Vazirmatn')),
         backgroundColor: Colors.red,
       ),
     );
