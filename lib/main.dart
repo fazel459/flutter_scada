@@ -72,7 +72,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    _restoreSession();
+    // _restoreSession();
   }
 
   Future<void> _restoreSession() async {

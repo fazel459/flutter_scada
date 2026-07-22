@@ -336,31 +336,7 @@ void _doCsvExport(List<TableRowData> rows) {
     }
   }
 
-  Future<void> _exportCsv() async {
-    if (_selectedTagIds.isEmpty) return;
-    try {
-      final api = ref.read(apiServiceProvider);
-      await api.post('/reports/export', {
-        'widgetIds': _selectedTagIds.toList(),
-        'from': _fromDate.toIso8601String(),
-        'to': _toDate.toIso8601String(),
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('CSV export started'),
-              backgroundColor: Colors.green),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Export failed: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
+  
 
   void _setQuickRange(String range) {
     final now = DateTime.now();
@@ -1084,49 +1060,8 @@ void _doCsvExport(List<TableRowData> rows) {
     );
   }
 
-  // ============ CHART VIEW ============
-  // ignore: unused_element
-  Widget _buildChartView() {
-    final series = (_reportData?['series'] as List<dynamic>?) ?? [];
-    if (series.isEmpty)
-      return const Center(
-          child: Text('No data', style: TextStyle(color: Colors.white38)));
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Legend
-          Wrap(
-            spacing: 16,
-            runSpacing: 4,
-            children: series.map((s) {
-              final color = _chartColor(series.indexOf(s));
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(width: 12, height: 3, color: color),
-                  const SizedBox(width: 4),
-                  Text('${s['widgetLabel']} (${s['unit']})',
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 10)),
-                ],
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          // Chart
-          Expanded(
-            child: CustomPaint(
-              painter: _ReportChartPainter(series, _fromDate, _toDate),
-              size: Size.infinite,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildChartViewNew() {
     // Ensure _reportData is treated as a nullable List and fallback to empty list
@@ -1180,19 +1115,7 @@ void _doCsvExport(List<TableRowData> rows) {
     );
   }
 
-  Color _chartColor(int index) {
-    const colors = [
-      Color(0xFF3B82F6),
-      Color(0xFF22C55E),
-      Color(0xFFEF4444),
-      Color(0xFFEAB308),
-      Color(0xFF8B5CF6),
-      Color(0xFF06B6D4),
-      Color(0xFFF97316),
-      Color(0xFFEC4899)
-    ];
-    return colors[index % colors.length];
-  }
+ 
 
   // ============ Alarm VIEW ============
   Widget _buildAlarmsView() {
@@ -1214,207 +1137,14 @@ void _doCsvExport(List<TableRowData> rows) {
   //   );
   // }
 
-  Widget _buildStatsView() {
-    final series = (_reportData?['series'] as List<dynamic>?) ?? [];
-    if (series.isEmpty)
-      return const Center(
-          child: Text('No data', style: TextStyle(color: Colors.white38)));
-
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: series.map((s) {
-        final points = s['dataPoints'] as List<dynamic>? ?? [];
-        if (points.isEmpty) return const SizedBox();
-        final values =
-            points.map((p) => (p['value'] as num).toDouble()).toList();
-        final total = values.fold(0.0, (a, b) => a + b);
-        final avg = total / values.length;
-        final min = values.reduce((a, b) => a < b ? a : b);
-        final max = values.reduce((a, b) => a > b ? a : b);
-        final first = DateTime.parse(points.first['timestamp'] as String);
-        final last = DateTime.parse(points.last['timestamp'] as String);
-
-        return Card(
-          color: const Color(0xFF1E293B),
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('🏷️ ${s['widgetLabel']}',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold)),
-                const Divider(color: Color(0xFF334155)),
-                _statRow('Count', '${points.length}'),
-                _statRow(
-                    'Average', '${avg.toStringAsFixed(2)} ${s['unit'] ?? ''}'),
-                _statRow(
-                    'Minimum', '${min.toStringAsFixed(2)} ${s['unit'] ?? ''}'),
-                _statRow(
-                    'Maximum', '${max.toStringAsFixed(2)} ${s['unit'] ?? ''}'),
-                _statRow(
-                    'Sum', '${total.toStringAsFixed(2)} ${s['unit'] ?? ''}'),
-                _statRow('Range', (max - min).toStringAsFixed(2)),
-                _statRow('From', DateFormat('yyyy/MM/dd HH:mm').format(first)),
-                _statRow('To', DateFormat('yyyy/MM/dd HH:mm').format(last)),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _statRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          SizedBox(
-              width: 100,
-              child: Text(label,
-                  style:
-                      const TextStyle(color: Color(0xFF94A3B8), fontSize: 12))),
-          Expanded(
-              child: Text(value,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontFamily: 'monospace'))),
-        ],
-      ),
-    );
-  }
+Widget _buildStatsView() {
+  final series = (_reportData?['series'] as List?) ?? [];
+  return ReportStatsView(
+    seriesData: series.cast<Map<String, dynamic>>(),
+  );
 }
 
-// ============ CHART PAINTER ============
-class _ReportChartPainter extends CustomPainter {
-  final List<dynamic> series;
-  final DateTime from;
-  final DateTime to;
 
-  _ReportChartPainter(this.series, this.from, this.to);
-
-  static const _colors = [
-    Color(0xFF3B82F6),
-    Color(0xFF22C55E),
-    Color(0xFFEF4444),
-    Color(0xFFEAB308),
-    Color(0xFF8B5CF6),
-    Color(0xFF06B6D4)
-  ];
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Background
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height),
-        Paint()..color = const Color(0xFF0A0F1A));
-
-    const padding = EdgeInsets.fromLTRB(60, 10, 20, 40);
-    final chartW = size.width - padding.left - padding.right;
-    final chartH = size.height - padding.top - padding.bottom;
-
-    // Grid
-    for (int i = 0; i <= 5; i++) {
-      final y = padding.top + chartH * i / 5;
-      canvas.drawLine(
-          Offset(padding.left, y),
-          Offset(size.width - padding.right, y),
-          Paint()..color = Colors.white.withValues(alpha: 0.08));
-    }
-
-    // Find global min/max
-    double globalMin = double.infinity, globalMax = double.negativeInfinity;
-    for (final s in series) {
-      final pts = (s['dataPoints'] as List<dynamic>?) ?? [];
-      for (final p in pts) {
-        final v = (p['value'] as num).toDouble();
-        if (v < globalMin) globalMin = v;
-        if (v > globalMax) globalMax = v;
-      }
-    }
-
-    final range = math.max(globalMax - globalMin, 1);
-    final totalMs = to.difference(from).inMilliseconds.toDouble();
-
-    for (var i = 0; i < series.length; i++) {
-      final s = series[i];
-      final color = _colors[i % _colors.length];
-      final pts = (s['dataPoints'] as List<dynamic>?) ?? [];
-      if (pts.isEmpty) continue;
-
-      final path = Path();
-      var first = true;
-
-      for (final p in pts) {
-        final v = (p['value'] as num).toDouble();
-        final t = DateTime.parse(p['timestamp'] as String);
-        final x = padding.left +
-            chartW *
-                (t.difference(from).inMilliseconds / totalMs).clamp(0.0, 1.0);
-        final y = padding.top +
-            chartH * (1 - ((v - globalMin) / range).clamp(0.0, 1.0));
-
-        if (first) {
-          path.moveTo(x, y);
-          first = false;
-        } else {
-          path.lineTo(x, y);
-        }
-      }
-
-      // Glow
-      canvas.drawPath(
-          path,
-          Paint()
-            ..color = color.withValues(alpha: 0.3)
-            ..strokeWidth = 4
-            ..style = PaintingStyle.stroke
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
-      // Line
-      canvas.drawPath(
-          path,
-          Paint()
-            ..color = color
-            ..strokeWidth = 2
-            ..style = PaintingStyle.stroke);
-    }
-
-    // Labels
-    final labelPainter = TextPainter(textDirection: TextDirection.ltr);
-    for (int i = 0; i <= 5; i++) {
-      final val = globalMin + range * i / 5;
-      labelPainter.text = TextSpan(
-          text: val.toStringAsFixed(1),
-          style: const TextStyle(color: Color(0xFF64748B), fontSize: 8));
-      labelPainter.layout();
-      final y = padding.top + chartH * (1 - i / 5);
-      labelPainter.paint(
-          canvas,
-          Offset(padding.left - labelPainter.width - 6,
-              y - labelPainter.height / 2));
-    }
-
-    // Time labels
-    final df = DateFormat('MM/dd HH:mm');
-    labelPainter.text = TextSpan(
-        text: df.format(from),
-        style: const TextStyle(color: Color(0xFF64748B), fontSize: 8));
-    labelPainter.layout();
-    labelPainter.paint(canvas, Offset(padding.left, size.height - 28));
-    labelPainter.text = TextSpan(
-        text: df.format(to),
-        style: const TextStyle(color: Color(0xFF64748B), fontSize: 8));
-    labelPainter.layout();
-    labelPainter.paint(
-        canvas,
-        Offset(
-            size.width - padding.right - labelPainter.width, size.height - 28));
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
+
+
